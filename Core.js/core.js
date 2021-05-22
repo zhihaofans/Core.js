@@ -127,12 +127,24 @@ class CoreChecker {
       $ui.error("不存在该文件");
     }
   }
+  checkSupportCore(mod) {}
 }
-
+class ModInfo {
+  constructor({ file, name, url, version, dec, pref, core }) {
+    this.FILE_NAME = file;
+    this.MOD_NAME = name;
+    this.URL = url;
+    this.VERSION = version;
+    this.DEC = dec;
+    this.PREF = pref;
+    this.SUPPORT_CORE = core;
+  }
+}
 module.exports = {
   Core,
   Result,
   CoreChecker,
+  ModInfo,
   // <Core.js use guide>
   _SUPPORT_COREJS_: 1,
   run: () => {
