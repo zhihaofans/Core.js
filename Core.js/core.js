@@ -1,5 +1,4 @@
-const CORE_VERSION = 1,
-  SQLITE_FILE = "/assets/.files/mods.db";
+const CORE_VERSION = 1;
 class Core {
   constructor({
     mod_name,
@@ -7,11 +6,12 @@ class Core {
     author,
     need_database,
     database_id,
-    need_core_version
+    need_core_version,
+    sqlite_file
   }) {
     this.$$ = require("$$");
     this.$_ = require("$_");
-    this.DataBase = require("DataBase");
+    this.DataBase = require("./storage");
     this.AppScheme = require("AppScheme");
     this.HttpLib = new this.$_.Http();
     this.MOD_NAME = mod_name ?? "core";
@@ -20,6 +20,7 @@ class Core {
     this.NEED_CORE_VERSION = need_core_version ?? 0;
     this.NEED_DATABASE = need_database ?? false;
     this.DATABASE_ID = this.NEED_DATABASE ? database_id : undefined;
+    this.SQLITE_FILE = sqlite_file ?? "/assets/.files/mods.db";
     this.SQLITE = this.NEED_DATABASE ? this.initSQLite() : undefined;
   }
   checkCoreVersion() {
@@ -35,7 +36,7 @@ class Core {
     }
   }
   initSQLite() {
-    const SQLite = new this.DataBase.SQLite(SQLITE_FILE);
+    const SQLite = new this.DataBase.SQLite(this.SQLITE_FILE);
     SQLite.createSimpleTable(this.DATABASE_ID);
     return SQLite;
   }
@@ -127,6 +128,7 @@ class CoreChecker {
     }
   }
 }
+
 module.exports = {
   Core,
   Result,
