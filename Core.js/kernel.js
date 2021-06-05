@@ -1,8 +1,8 @@
 const __VERSION__ = 1,
   { CoreChecker } = require("./core");
 class Kernel {
-  constructor(name) {
-    this.NAME = name;
+  constructor(app_name) {
+    this.APP_NAME = app_name;
     this.REG_CORE_MOD_LIST = [];
   }
   error(id, msg) {
@@ -10,7 +10,7 @@ class Kernel {
       result = "";
     switch (typeof new_msg) {
       case "object":
-        new_msg = JSON.stringify(new_msg);
+        //new_msg = JSON.stringify(new_msg);
         break;
     }
     result = msg ? `${id}:${new_msg}` : new_msg;
