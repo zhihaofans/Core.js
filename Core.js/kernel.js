@@ -6,17 +6,17 @@ class Kernel {
   }
   // console
   info(id, msg) {
-    let new_msg = msg ?? id,
+    const new_msg = msg ?? id,
       result = msg ? `${id}:${new_msg}` : new_msg;
     $console.info(result);
   }
   warn(id, msg) {
-    let new_msg = msg ?? id,
+    const new_msg = msg ?? id,
       result = msg ? `${id}:${new_msg}` : new_msg;
     $console.warn(result);
   }
   error(id, msg) {
-    let new_msg = msg ?? id,
+    const new_msg = msg ?? id,
       result = msg ? `${id}:${new_msg}` : new_msg;
     $console.error(result);
   }
