@@ -14,7 +14,7 @@ class Core {
     this.Storage = require("./storage");
     this.AppScheme = require("AppScheme");
     this.Lib = require("./lib");
-    this.Http = new this.Lib.Http();
+    this.Http = this.Lib.Http;
     this.MOD_NAME = mod_name ?? "core";
     this.MOD_VERSION = version ?? 1;
     this.MOD_AUTHOR = author ?? "zhihaofans";
