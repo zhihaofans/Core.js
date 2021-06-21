@@ -2,6 +2,7 @@ const __VERSION__ = 1;
 class Kernel {
   constructor(app_name) {
     this.APP_NAME = app_name;
+    this.DEFAULE_SQLITE_FILE = "/assets/.files/mods.db";
     this.REG_CORE_MOD_LIST = [];
   }
   // console

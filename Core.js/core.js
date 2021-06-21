@@ -1,15 +1,16 @@
 const CORE_VERSION = 1;
 class Core {
   constructor({
+    kernel,
     mod_id,
     mod_name,
     version,
     author,
     need_database,
     database_id,
-    need_core_version,
-    sqlite_file
+    need_core_version
   }) {
+    this.Kernel = kernel;
     this.$$ = require("$$");
     this.$_ = require("$_");
     this.Storage = require("./storage");
@@ -23,8 +24,10 @@ class Core {
     this.NEED_CORE_VERSION = need_core_version ?? 0;
     this.NEED_DATABASE = need_database ?? false;
     this.DATABASE_ID = this.NEED_DATABASE ? database_id : undefined;
-    this.SQLITE_FILE = sqlite_file ?? "/assets/.files/mods.db";
-    this.SQLITE = this.NEED_DATABASE ? this.initSQLite() : undefined;
+    this.SQLITE_FILE = this.Kernel.DEFAULE_SQLITE_FILE || undefined;
+    this.SQLITE =
+      this.NEED_DATABASE && this.SQLITE_FILE ? this.initSQLite() : undefined;
+    $console.info(this.SQLITE);
   }
   checkCoreVersion() {
     if (CORE_VERSION === this.NEED_CORE_VERSION) {
