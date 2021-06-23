@@ -38,7 +38,7 @@ class Kernel {
     if (typeof ModCore.run === "function") {
       this.REG_CORE_MOD_LIST.push(ModCore);
     } else {
-      this.errorLog("registerCoreMod", "ModCore.run ≠ function");
+      this.error("registerCoreMod", "ModCore.run ≠ function");
     }
   }
   pushCoreModListView() {}
