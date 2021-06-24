@@ -4,6 +4,7 @@ class Kernel {
     this.APP_NAME = app_name;
     this.DEFAULE_SQLITE_FILE = "/assets/.files/mods.db";
     this.REG_CORE_MOD_LIST = [];
+    $file.mkdir("/assets/.files/");
   }
   // console
   info(id, msg) {

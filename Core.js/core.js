@@ -27,7 +27,6 @@ class Core {
     this.SQLITE_FILE = this.Kernel.DEFAULE_SQLITE_FILE || undefined;
     this.SQLITE =
       this.NEED_DATABASE && this.SQLITE_FILE ? this.initSQLite() : undefined;
-    $console.info(this.SQLITE);
   }
   checkCoreVersion() {
     if (CORE_VERSION === this.NEED_CORE_VERSION) {
@@ -47,7 +46,8 @@ class Core {
     return SQLite;
   }
   getSql(key) {
-    return this.SQLITE.getSimpleData(this.DATABASE_ID, key);
+    const result = this.SQLITE.auto(this.DATABASE_ID, key);
+    return result;
   }
   setSql(key, value) {
     return this.SQLITE.setSimpleData(this.DATABASE_ID, key, value);
