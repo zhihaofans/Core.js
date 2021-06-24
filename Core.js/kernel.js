@@ -1,10 +1,12 @@
 const __VERSION__ = 1;
 class Kernel {
-  constructor(app_name) {
+  constructor({ app_name, use_sqlite = false }) {
     this.APP_NAME = app_name;
-    this.DEFAULE_SQLITE_FILE = "/assets/.files/mods.db";
     this.REG_CORE_MOD_LIST = [];
-    $file.mkdir("/assets/.files/");
+    if (use_sqlite) {
+      $file.mkdir("/assets/.files/");
+      this.DEFAULE_SQLITE_FILE = "/assets/.files/mods.db";
+    }
   }
   // console
   info(id, msg) {

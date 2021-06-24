@@ -1,4 +1,5 @@
-const CORE_VERSION = 1;
+const CORE_VERSION = 1,
+  { Result } = require("./object");
 class Core {
   constructor({
     kernel,
@@ -46,21 +47,13 @@ class Core {
     return SQLite;
   }
   getSql(key) {
-    const result = this.SQLITE.auto(this.DATABASE_ID, key);
-    return result;
+    return this.SQLITE.auto(this.DATABASE_ID, key);
   }
   setSql(key, value) {
     return this.SQLITE.setSimpleData(this.DATABASE_ID, key, value);
   }
 }
-class Result {
-  constructor({ success, code, data, error_message }) {
-    this.success = success ?? false;
-    this.data = data;
-    this.code = code ?? -1;
-    this.error_message = success ? undefined : error_message;
-  }
-}
+
 class CoreChecker {
   constructor(mod_dir) {
     this.MOD_DIR = mod_dir;
