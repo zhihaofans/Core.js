@@ -1,4 +1,4 @@
-const __VERSION__ = 4;
+const __VERSION__ = 5;
 class Console {
   auto(success = true, message) {
     success ? $console.info(message) : $console.error(message);
@@ -115,7 +115,7 @@ class Share {
     return undefined;
   }
 }
-class String {
+class Str {
   copy(str) {
     $clipboard.copy({
       text: str,
@@ -257,7 +257,7 @@ module.exports = {
   Http,
   Push,
   Share,
-  String,
+  Str,
   Time,
   View
 };
