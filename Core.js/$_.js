@@ -1,9 +1,11 @@
-const __VERSION__ = 5;
+const __VERSION__ = 6;
+// File
 class Console {
   auto(success = true, message) {
     success ? $console.info(message) : $console.error(message);
   }
 }
+// File
 class File {
   constructor(icloud) {
     this.IS_ICLOUD = icloud ?? false;
@@ -95,6 +97,7 @@ class File {
     return undefined;
   }
 }
+// Http
 class Http {
   constructor(timeout = 5) {
     this.TIMEOUT = timeout;
@@ -117,7 +120,8 @@ class Http {
     return url ? result : undefined;
   }
 }
-class Push {
+
+class Notify {
   default(title = "标题", body = "内容", mute = true) {
     $push.schedule({
       title: title,
@@ -312,7 +316,7 @@ module.exports = {
   Console,
   File,
   Http,
-  Push,
+  Notify,
   Share,
   Str,
   Time,
