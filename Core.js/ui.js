@@ -83,6 +83,7 @@ class ListKit extends ViewKit {
       navButtons: undefined
     });
   }
+
   pushString(title, listData, didSelect = (sender, indexPath, data) => {}) {
     this.TITLE = title;
     this.pushView([
@@ -149,9 +150,52 @@ class ListKit extends ViewKit {
     ]);
   }
 }
+class ImageKit extends ViewKit {
+  constructor() {
+    super();
+    this.name = "name";
+  }
+  showSingleUrlMenu(imageUrl) {
+    if (imageUrl) {
+      const links = $detector.link(imageUrl);
+      let imageLink = imageUrl;
+      if (links.length > 1) {
+        imageLink = imageUrl[0];
+      }
+      $ui.menu({
+        items: ["用Safari打开", "分享", "快速预览", "网页预览"],
+        handler: function (title, idx) {
+          switch (idx) {
+            case 0:
+              $app.openURL(imageLink);
+              break;
+            case 1:
+              $share.sheet([imageLink]);
+              break;
+            case 2:
+              $quicklook.open({
+                url: imageLink,
+                handler: function () {
+                  $console.info(imageLink);
+                }
+              });
+              break;
+            case 3:
+              $ui.preview({
+                title: title,
+                url: imageLink
+              });
+              break;
+          }
+        }
+      });
+    }
+  }
+}
 
 module.exports = {
   __VERSION__,
   ListKit,
-  LongClickKit
+  LongClickKit,
+  ImageKit
 };

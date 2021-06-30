@@ -120,7 +120,7 @@ class Http {
     return url ? result : undefined;
   }
 }
-
+// Notify
 class Notify {
   default(title = "标题", body = "内容", mute = true) {
     $push.schedule({
@@ -130,6 +130,7 @@ class Notify {
     });
   }
 }
+// Share
 class Share {
   isAction() {
     return $app.env == $env.action;
@@ -176,6 +177,7 @@ class Share {
     return undefined;
   }
 }
+// Str
 class Str {
   copy(str) {
     $clipboard.copy({
@@ -203,6 +205,7 @@ class Str {
     return sourceList ? sourceList.map(x => $l10n(x)) : [];
   }
 }
+// Time
 class Time {
   getUnixTime() {
     return new Date().getTime();
@@ -215,6 +218,7 @@ class Time {
     return moment(ISO8601).tz(timezone).format("YYYY-MM-DD hh:mm:ss");
   }
 }
+// View
 class View {
   constructor() {
     this.List = {
