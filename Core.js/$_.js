@@ -1,4 +1,4 @@
-const __VERSION__ = 6;
+const __VERSION__ = 7;
 // File
 class Console {
   auto(success = true, message) {
@@ -118,6 +118,18 @@ class Http {
       body: postBody
     });
     return url ? result : undefined;
+  }
+  cookieToObj(cookie) {
+    if (cookie) {
+      const cookie_obj = {};
+      cookie.split(";").map(cookie_item => {
+        const item_split = cookie_item.split("=");
+        cookie_item[item_split[0]] = item_split[1];
+      });
+      return cookie_obj;
+    } else {
+      return undefined;
+    }
   }
 }
 // Notify
