@@ -1,4 +1,4 @@
-const __VERSION__ = 1;
+const __VERSION__ = 2;
 class Cache {
   constructor(key) {
     this.KEY = key;
@@ -8,6 +8,31 @@ class Cache {
   }
   set(value) {
     return $cache.set(this.KEY, value);
+  }
+}
+class Keychain {
+  constructor(domain) {
+    this.DOMAIN = domain.toLowerCase();
+  }
+  get(key) {
+    return $keychain.get(key, this.DOMAIN);
+  }
+  set(key, value) {
+    return $keychain.set(key, value, this.DOMAIN);
+  }
+  getValue(key) {
+    return $keychain.get(key, this.DOMAIN);
+  }
+  setValue(key, value) {
+    return $keychain.set(key, value, this.DOMAIN);
+  }
+  getAll() {
+    const keys = $keychain.keys(),
+      result = {};
+    keys.map(key => {
+      result[key] = $keychain.get(key, this.DOMAIN);
+    });
+    return result;
   }
 }
 
@@ -168,6 +193,7 @@ module.exports = {
   __VERSION__,
   Cache,
   File: require("./$_").File,
+  Keychain,
   Prefs,
   SQLite
 };

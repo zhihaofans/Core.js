@@ -1,32 +1,38 @@
-const CORE_VERSION = 1,
+const CORE_VERSION = 2,
   { Result } = require("./object");
 class Core {
   constructor({
     kernel,
-    mod_id,
-    mod_name,
+    modId,
+    modName,
     version,
     author,
-    need_database,
-    database_id,
-    need_core_version
+    databaseId,
+    needCoreVersion,
+    keychainId
   }) {
     this.Kernel = kernel;
     this.$_ = require("./$_");
     this.Storage = require("./storage");
     this.AppScheme = require("AppScheme");
-    this.Lib = require("./lib");
-    this.Http = this.Lib.Http;
-    this.MOD_ID = mod_id;
-    this.MOD_NAME = mod_name ?? "core";
+
+    this.Http = require("./lib").Http;
+    this.MOD_ID = modId;
+    this.MOD_NAME = modName ?? "core";
     this.MOD_VERSION = version ?? 1;
     this.MOD_AUTHOR = author ?? "zhihaofans";
-    this.NEED_CORE_VERSION = need_core_version ?? 0;
-    this.NEED_DATABASE = need_database ?? false;
-    this.DATABASE_ID = this.NEED_DATABASE ? database_id : undefined;
+    this.NEED_CORE_VERSION = needCoreVersion ?? 0;
+    this.DATABASE_ID = this.NEED_DATABASE ? databaseId : "";
     this.SQLITE_FILE = this.Kernel.DEFAULE_SQLITE_FILE || undefined;
     this.SQLITE =
-      this.NEED_DATABASE && this.SQLITE_FILE ? this.initSQLite() : undefined;
+      this.DATABASE_ID.length > 0 && this.SQLITE_FILE
+        ? this.initSQLite()
+        : undefined;
+    this.KEYCHAIN_DOMAIN = `nobundo.mod.${keychainId}`;
+    this.Keychain =
+      keychainId && keychainId.length > 0
+        ? new this.Storage.Keychain(this.KEYCHAIN_DOMAIN)
+        : undefined;
   }
   checkCoreVersion() {
     if (CORE_VERSION === this.NEED_CORE_VERSION) {
@@ -46,7 +52,7 @@ class Core {
     return SQLite;
   }
   getSql(key) {
-    return this.SQLITE.auto(this.DATABASE_ID, key);
+    return this.SQLITE ? this.SQLITE.auto(this.DATABASE_ID, key) : undefined;
   }
   setSql(key, value) {
     return this.SQLITE.setSimpleData(this.DATABASE_ID, key, value);
