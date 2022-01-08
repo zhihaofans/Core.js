@@ -1,4 +1,4 @@
-const CORE_VERSION = 2,
+const CORE_VERSION = 3,
   { Result } = require("./object");
 class Core {
   constructor({
@@ -17,6 +17,7 @@ class Core {
     this.AppScheme = require("AppScheme");
 
     this.Http = require("./lib").Http;
+    this.$ = require("./$");
     this.MOD_ID = modId;
     this.MOD_NAME = modName ?? "core";
     this.MOD_VERSION = version ?? 1;
@@ -28,7 +29,7 @@ class Core {
       this.DATABASE_ID.length > 0 && this.SQLITE_FILE
         ? this.initSQLite()
         : undefined;
-    this.KEYCHAIN_DOMAIN = `nobundo.mod.${keychainId}`;
+    this.KEYCHAIN_DOMAIN = `nobundo.mod.${author}.${keychainId}`;
     this.Keychain =
       keychainId && keychainId.length > 0
         ? new this.Storage.Keychain(this.KEYCHAIN_DOMAIN)
