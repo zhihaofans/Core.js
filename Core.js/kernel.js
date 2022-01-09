@@ -1,4 +1,4 @@
-const __VERSION__ = 3,
+const __VERSION__ = 4,
   object = require("./object");
 class Kernel {
   constructor({ appName, useSqlite = false, debug = false }) {
@@ -60,7 +60,7 @@ class Kernel {
     });
     $app.strings = result;
   }
-  registerCoreMod(ModCore) {
+  registerCoreMod({ ModCore }) {
     if (typeof ModCore.run === "function") {
       const needUpdateCore = ModCore.checkCoreVersion();
       if (needUpdateCore == 0) {
