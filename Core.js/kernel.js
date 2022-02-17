@@ -33,17 +33,17 @@ class Kernel {
   }
   // console
   info(id, msg) {
-    const newMsg = msg ?? id,
+    const newMsg = msg || id,
       result = msg ? `${id}:${newMsg}` : newMsg;
     $console.info(result);
   }
   warn(id, msg) {
-    const newMsg = msg ?? id,
+    const newMsg = msg || id,
       result = msg ? `${id}:${newMsg}` : newMsg;
     $console.warn(result);
   }
   error(id, msg) {
-    const newMsg = msg ?? id,
+    const newMsg = msg || id,
       result = msg ? `${id}:${newMsg}` : newMsg;
     $console.error(result);
   }
@@ -63,7 +63,9 @@ class Kernel {
   registerCoreMod(modCore) {
     if (typeof modCore.run === "function") {
       const needUpdateCore = modCore.checkCoreVersion();
-      if (needUpdateCore == 0) {
+      if (modCore.IGNORE_CORE_VERSION == true) {
+        this.REG_CORE_MOD_LIST.push(modCore);
+      } else if (needUpdateCore == 0) {
         this.REG_CORE_MOD_LIST.push(modCore);
       } else {
         this.error("registerCoreMod", "need update mod");
@@ -92,6 +94,17 @@ class Kernel {
         source: "mod"
       });
     }
+  }
+  loadCoreMods(modDir, modList) {
+    modList.map(mod => {
+      try {
+        const modPath = modDir + mod,
+          thisMod = require(modPath);
+        this.registerCoreMod(new thisMod(this));
+      } catch (error) {
+        $console.error({ name: error.name, error: error.message, mod });
+      }
+    });
   }
 }
 module.exports = {
