@@ -19,11 +19,21 @@ class Core {
 
     this.Http = require("./lib").Http;
     this.$ = require("./$");
+    this.CORE_INFO = {
+      ID: modId,
+      NAME: modName,
+      VERSION: version,
+      AUTHOR: author,
+      CORE_VERSION: needCoreVersion,
+      DATABASE_ID: modId,
+      IGNORE_CORE_VERSION: ignoreCoreVersion,
+      KEYCHAIN_DOMAIN: `nobundo.mod.${author}.${modId}`
+    };
     this.MOD_ID = modId;
     this.MOD_NAME = modName ?? "core";
     this.MOD_VERSION = version ?? 1;
     this.MOD_AUTHOR = author ?? "zhihaofans";
-    this.NEED_CORE_VERSION = needCoreVersion ?? 0;
+    this.NEED_CORE_VERSION = needCoreVersion || 0;
     this.DATABASE_ID = this.NEED_DATABASE ? databaseId : "";
     this.SQLITE_FILE = this.Kernel.DEFAULE_SQLITE_FILE || undefined;
     this.SQLITE =
@@ -76,11 +86,11 @@ class CoreChecker {
         $ui.error("这是目录");
       } else {
         const coreMod = require(fileName),
-          runMod = coreMod.run,
+          modRun = coreMod.run,
           _SUPPORT_COREJS_ = coreMod._SUPPORT_COREJS_;
-        if (typeof runMod === "function" && _SUPPORT_COREJS_ === 1) {
+        if (typeof modRun === "function" && _SUPPORT_COREJS_ === 1) {
           try {
-            const runResult = runMod();
+            const runResult = modRun();
             if (runResult.success === true) {
               $console.info(`(core.js)Mod加载完毕:${mod.MOD_NAME}`);
             } else {
@@ -129,25 +139,13 @@ class CoreChecker {
       $ui.error("不存在该文件");
     }
   }
-  checkSupportCore(mod) {}
 }
-class ModInfo {
-  constructor({ file, name, url, version, dec, pref, core }) {
-    this.FILE_NAME = file;
-    this.MOD_NAME = name;
-    this.URL = url;
-    this.VERSION = version;
-    this.DEC = dec;
-    this.PREF = pref;
-    this.SUPPORT_CORE = core;
-  }
-}
+
 module.exports = {
   __VERSION__: CORE_VERSION,
   Core,
   Result,
   CoreChecker,
-  ModInfo,
   // <Core.js use guide>
   _SUPPORT_COREJS_: 1,
   run: () => {
