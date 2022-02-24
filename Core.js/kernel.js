@@ -64,7 +64,19 @@ class Kernel {
   registerCoreMod(modCore) {
     if (typeof modCore.run === "function") {
       const needUpdateCore = modCore.checkCoreVersion();
-      if (modCore.IGNORE_CORE_VERSION == true) {
+      if (modCore.MOD_ID.length <= 0) {
+        throw new object.UserException({
+          name: "Mod id",
+          message: "need mod id",
+          source: "mod"
+        });
+      } else if (modCore.MOD_NAME.length <= 0) {
+        throw new object.UserException({
+          name: "Mod name",
+          message: "need mod name",
+          source: "mod"
+        });
+      } else if (modCore.IGNORE_CORE_VERSION == true) {
         this.REG_CORE_MOD_LIST.push(modCore);
       } else if (needUpdateCore == 0) {
         this.REG_CORE_MOD_LIST.push(modCore);
