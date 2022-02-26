@@ -6,6 +6,7 @@ class Kernel {
     this.DEBUG = debug;
     this.USE_SQLITR = useSqlite;
     this.REG_CORE_MOD_LIST = [];
+    this.MOD_LIST = {};
     if (useSqlite === true) {
       $file.mkdir("/assets/.files/");
       this.DEFAULE_SQLITE_FILE = "/assets/.files/mods.db";
@@ -76,10 +77,15 @@ class Kernel {
           message: "need mod name",
           source: "mod"
         });
-      } else if (modCore.IGNORE_CORE_VERSION == true) {
+      } else if (this.MOD_LIST[modCore.CORE_INFO.ID] != undefined) {
+        throw new object.UserException({
+          name: "Mod exist",
+          message: "Mod exist",
+          source: "kernel"
+        });
+      } else if (modCore.IGNORE_CORE_VERSION == true || needUpdateCore == 0) {
         this.REG_CORE_MOD_LIST.push(modCore);
-      } else if (needUpdateCore == 0) {
-        this.REG_CORE_MOD_LIST.push(modCore);
+        this.MOD_LIST[modCore.CORE_INFO.ID] = modCore;
       } else {
         this.error("registerCoreMod", "need update mod");
         $ui.alert({
@@ -118,6 +124,10 @@ class Kernel {
         $console.error({ name: error.name, error: error.message, mod });
       }
     });
+    $console.info(this.MOD_LIST);
+  }
+  getMod(modId) {
+    return this.MOD_LIST[modId];
   }
 }
 module.exports = {
