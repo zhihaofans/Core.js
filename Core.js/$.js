@@ -7,6 +7,14 @@ const $VERSION$ = "1",
       });
     }
   },
+  file = {
+    isFile: filePath => {
+      return !$file.isDirectory(filePath);
+    },
+    isFileExist: filePath => {
+      return $file.exists(filePath) && !$file.isDirectory(filePath);
+    }
+  },
   http = {
     get: async ({ url, header, timeout }) => {
       return await $http.get({
@@ -128,6 +136,7 @@ module.exports = {
   getUUID: () => {
     return $text.uuid;
   },
+  file,
   http,
   share,
   time,
