@@ -15,8 +15,6 @@ class Core {
     this.Kernel = kernel;
     this.$_ = require("./$_");
     this.Storage = require("./storage");
-    this.AppScheme = require("AppScheme");
-
     this.Http = require("./lib").Http;
     this.$ = require("./$");
     this.CORE_INFO = {
@@ -29,33 +27,30 @@ class Core {
       IGNORE_CORE_VERSION: ignoreCoreVersion,
       KEYCHAIN_DOMAIN: `nobundo.mod.${author}.${modId}`
     };
-    this.MOD_ID = modId;
-    this.MOD_NAME = modName ?? "core";
-    this.MOD_VERSION = version ?? 1;
-    this.MOD_AUTHOR = author ?? "zhihaofans";
-    this.NEED_CORE_VERSION = needCoreVersion || 0;
-    this.DATABASE_ID = this.NEED_DATABASE ? databaseId : "";
+    this.MOD_ID = this.CORE_INFO.ID;
+    this.MOD_NAME = this.CORE_INFO.NAME || "core";
+    this.MOD_VERSION = this.CORE_INFO.VERSION || 1;
+    this.MOD_AUTHOR = this.CORE_INFO.AUTHOR || "zhihaofans";
+    this.NEED_CORE_VERSION = this.CORE_INFO.CORE_VERSION || 0;
+    this.DATABASE_ID = this.CORE_INFO.DATABASE_ID;
     this.SQLITE_FILE = this.Kernel.DEFAULE_SQLITE_FILE || undefined;
     this.SQLITE =
-      this.DATABASE_ID.length > 0 && this.SQLITE_FILE
+      this.DATABASE_ID.length > 0 && this.Kernel.DEFAULE_SQLITE_FILE
         ? this.initSQLite()
         : undefined;
-    this.KEYCHAIN_DOMAIN = `nobundo.mod.${author}.${keychainId}`;
-    this.Keychain =
-      keychainId && keychainId.length > 0
-        ? new this.Storage.Keychain(this.KEYCHAIN_DOMAIN)
-        : undefined;
+    this.KEYCHAIN_DOMAIN = this.CORE_INFO.KEYCHAIN_DOMAIN;
+    this.Keychain = new this.Storage.Keychain(this.CORE_INFO.KEYCHAIN_DOMAIN);
     this.IGNORE_CORE_VERSION = ignoreCoreVersion === true;
   }
   checkCoreVersion() {
-    if (CORE_VERSION === this.NEED_CORE_VERSION) {
+    if (CORE_VERSION === this.CORE_INFO.CORE_VERSION) {
       return 0;
     }
-    if (CORE_VERSION > this.NEED_CORE_VERSION) {
+    if (CORE_VERSION > this.CORE_INFO.CORE_VERSION) {
       return -1;
     }
 
-    if (CORE_VERSION < this.NEED_CORE_VERSION) {
+    if (CORE_VERSION < this.CORE_INFO.CORE_VERSION) {
       return 1;
     }
   }
@@ -149,9 +144,9 @@ module.exports = {
   // <Core.js use guide>
   _SUPPORT_COREJS_: 1,
   run: () => {
-    const _core = new Core();
-    const ver = _core.checkCoreVersion();
-    if (ver === 0) {
+    const _core = new Core(),
+      ver = _core.checkCoreVersion();
+    if (ver == 0) {
       _core.initView();
       return new _core.Result({
         success: true,
