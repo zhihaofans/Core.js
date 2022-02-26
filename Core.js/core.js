@@ -13,7 +13,6 @@ class Core {
     ignoreCoreVersion
   }) {
     this.Kernel = kernel;
-    this.$_ = require("./$_");
     this.Storage = require("./storage");
     this.Http = require("./lib").Http;
     this.$ = require("./$");
