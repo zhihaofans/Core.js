@@ -1,8 +1,9 @@
 class AppKernel {
-  constructor({ modDir }) {
+  constructor({ modDir, l10nPath }) {
     this.MOD_DIR = modDir;
     this.AppConfig = JSON.parse($file.read("/config.json"));
     this.AppInfo = this.AppConfig.info;
+    this.l10n(require(l10nPath));
   }
   l10n(l10nRes) {
     const result = {};
