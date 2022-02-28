@@ -20,4 +20,4 @@ class AppKernel {
   }
 }
 
-module.exports = { AppKernel };
+module.exports = { AppKernel, version: 1 };

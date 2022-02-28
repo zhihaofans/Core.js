@@ -1,4 +1,4 @@
-const $VERSION$ = "1",
+const version = "1",
   alert = {
     show: ({ title, message }) => {
       $ui.alert({
@@ -132,6 +132,7 @@ const $VERSION$ = "1",
     }
   };
 module.exports = {
+  version,
   alert,
   getUUID: () => {
     return $text.uuid;
@@ -139,6 +140,5 @@ module.exports = {
   file,
   http,
   share,
-  time,
-  $VERSION$
+  time
 };
