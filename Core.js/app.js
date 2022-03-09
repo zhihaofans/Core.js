@@ -1,33 +1,5 @@
-const START_TIME = new Date().getTime();
-class UserUUID {
-  constructor() {
-    this.USER_DATA_DIR = "shared://zhihaofans/Core.js/";
-    this.KEYCHAIN_DOMAIN = "zhihaofans.corejs";
-    this.init();
-  }
-  init() {
-    $file.mkdir("shared://zhihaofans/");
-    $console.error(this.USER_DATA_DIR);
-    $file.mkdir(this.USER_DATA_DIR);
-    this.UUID = this.getDeviceUUID();
-    this.saveUserData();
-  }
-  saveUserData() {
-    $keychain.set(this.KEYCHAIN_DOMAIN, "uuid", this.UUID);
-    $file.write({
-      data: $data({ string: this.UUID }),
-      path: this.USER_DATA_DIR + "uuid"
-    });
-  }
-  getDeviceUUID() {
-    const UUID =
-      $keychain.get(this.KEYCHAIN_DOMAIN, "uuid") ||
-      $file.read(this.USER_DATA_DIR + "uuid") ||
-      $text.uuid;
-
-    return UUID;
-  }
-}
+const START_TIME = new Date().getTime(),
+  { UserUUID } = require("./uuid");
 
 class AppKernel {
   constructor({ modDir, l10nPath }) {
