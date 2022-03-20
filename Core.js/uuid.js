@@ -22,10 +22,6 @@ class UserUUID {
       data: $data({ string: this.UUID }),
       path: this.DATA_DIR + "uuid"
     });
-    $file.write({
-      data: $data({ string: this.UUID }),
-      path: this.ICLOUD_DATA_DIR + "uuid"
-    });
   }
   getDeviceUUID() {
     const UUID =
