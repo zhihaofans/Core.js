@@ -13,6 +13,48 @@ const version = "1",
     },
     isFileExist: filePath => {
       return $file.exists(filePath) && !$file.isDirectory(filePath);
+    },
+    getPathLevelsList: path => {
+      var newPath = path;
+      if (path.endsWith("/")) {
+        newPath = path.substring(0, path.length - 2);
+      }
+      if (newPath.startsWith("shared://")) {
+        const pathStr = newPath.substring(9, path.length - 1);
+        if (pathStr.indexOf("/") < 0) {
+          return pathStr;
+        }
+        const levelsList = pathStr.split("/");
+        levelsList[0] = "shared://" + levelsList[0];
+        return levelsList;
+      } else if (newPath.startsWith("drive://")) {
+        const pathStr = newPath.substring(8, newPath.length - 1);
+        if (pathStr.indexOf("/") < 0) {
+          return pathStr;
+        }
+        const levelsList = pathStr.split("/");
+        levelsList[0] = "drive://" + levelsList[0];
+        return levelsList;
+      } else if (newPath.startsWith("/")) {
+        const pathStr = newPath.substring(1, newPath.length - 1),
+          levelsList = pathStr.split("/");
+        levelsList[0] = "/" + levelsList[0];
+        return levelsList;
+      }
+      return undefined;
+    },
+    mkdirs: dir => {
+      const pathLevelsList = file.getPathLevelsList(dir);
+      $console.warn(pathLevelsList);
+      if (pathLevelsList == undefined || pathLevelsList.length == 0) {
+        return false;
+      }
+      var nextPath = "";
+      pathLevelsList.map(path => {
+        nextPath += path + "/";
+        $console.warn(nextPath);
+        $console.warn($file.mkdir(nextPath));
+      });
     }
   },
   http = {
