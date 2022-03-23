@@ -10,6 +10,11 @@ class AppKernel {
     this.AppInfo.id = appId;
     this.l10n(require(l10nPath));
     this.UUID = new UserUUID(this);
+    this.DATA_DIR = {
+      SHARED: "",
+      ICLOUD: "",
+      LOCAL: ""
+    };
   }
   l10n(l10nRes) {
     const result = {};
@@ -27,7 +32,33 @@ class AppKernel {
   getLocale() {
     return $app.info.locale;
   }
-  getString(id, lang = this.getLocale()) {}
+  getString(id, lang = this.getLocale()) {
+    return $app.strings[lang][id];
+  }
+  setSharedDataDir(path) {
+    if (path) {
+      this.DATA_DIR.SHARED = path;
+      if (!this.DATA_DIR.SHARED.endsWith("/")) {
+        this.DATA_DIR.SHARED += "/";
+      }
+    }
+  }
+  setIcloudDataDir(path) {
+    if (path) {
+      this.DATA_DIR.ICLOUD = path;
+      if (!this.DATA_DIR.ICLOUD.endsWith("/")) {
+        this.DATA_DIR.ICLOUD += "/";
+      }
+    }
+  }
+  setLocalDataDir(path) {
+    if (path) {
+      this.DATA_DIR.LOCAL = path;
+      if (!this.DATA_DIR.LOCAL.endsWith("/")) {
+        this.DATA_DIR.LOCAL += "/";
+      }
+    }
+  }
 }
 
 module.exports = { AppKernel, version: 1 };
