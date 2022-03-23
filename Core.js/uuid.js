@@ -1,8 +1,9 @@
 class UserUUID {
-  constructor(appKernel) {
-    this.AppKernel = appKernel;
+  constructor(app) {
+    this.AppKernel = app;
+    this.App = app;
     this.ICLOUD_DIR = "drive://zhihaofans/";
-    this.DATA_DIR = this.ICLOUD_DIR + "Core.js/";
+    this.DATA_DIR = this.App.DATA_DIR.ICLOUD;
     this.KEYCHAIN_DOMAIN = "zhihaofans.corejs";
     $file.mkdir(this.ICLOUD_DIR);
     $file.mkdir(this.DATA_DIR);
