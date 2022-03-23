@@ -9,8 +9,6 @@ class AppKernel {
     this.AppConfig = JSON.parse($file.read("/config.json"));
     this.AppInfo = this.AppConfig.info;
     this.AppInfo.id = appId;
-    this.l10n(require(l10nPath));
-    this.UUID = new UserUUID(this);
     this.DATA_DIR = {
       SHARED: "shared://zhihaofans/Core.js/",
       ICLOUD: "drive://zhihaofans/Core.js/",
@@ -18,6 +16,8 @@ class AppKernel {
     };
     $.file.mkdirs(this.DATA_DIR.SHARED);
     $.file.mkdirs(this.DATA_DIR.ICLOUD);
+    this.l10n(require(l10nPath));
+    this.UUID = new UserUUID(this);
   }
   l10n(l10nRes) {
     const result = {};
