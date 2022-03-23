@@ -45,15 +45,13 @@ const version = "1",
     },
     mkdirs: dir => {
       const pathLevelsList = file.getPathLevelsList(dir);
-      $console.warn(pathLevelsList);
       if (pathLevelsList == undefined || pathLevelsList.length == 0) {
         return false;
       }
       var nextPath = "";
       pathLevelsList.map(path => {
         nextPath += path + "/";
-        $console.warn(nextPath);
-        $console.warn($file.mkdir(nextPath));
+        $file.mkdir(nextPath)
       });
     }
   },
