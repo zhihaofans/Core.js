@@ -1,5 +1,6 @@
 const START_TIME = new Date().getTime(),
-  { UserUUID } = require("./uuid");
+  { UserUUID } = require("./uuid"),
+  $ = require("./$");
 
 class AppKernel {
   constructor({ appId, modDir, l10nPath }) {
@@ -11,10 +12,12 @@ class AppKernel {
     this.l10n(require(l10nPath));
     this.UUID = new UserUUID(this);
     this.DATA_DIR = {
-      SHARED: "",
-      ICLOUD: "",
+      SHARED: "shared://zhihaofans/Core.js/",
+      ICLOUD: "drive://zhihaofans/Core.js/",
       LOCAL: ""
     };
+    $.file.mkdirs(this.DATA_DIR.SHARED);
+    $.file.mkdirs(this.DATA_DIR.ICLOUD);
   }
   l10n(l10nRes) {
     const result = {};
