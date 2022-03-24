@@ -51,7 +51,7 @@ const version = "1",
       var nextPath = "";
       pathLevelsList.map(path => {
         nextPath += path + "/";
-        $file.mkdir(nextPath)
+        $file.mkdir(nextPath);
       });
     }
   },

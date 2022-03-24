@@ -11,8 +11,7 @@ class AppKernel {
     this.AppInfo.id = appId;
     this.DATA_DIR = {
       SHARED: "shared://zhihaofans/Core.js/",
-      ICLOUD: "drive://zhihaofans/Core.js/",
-      LOCAL: ""
+      ICLOUD: "drive://zhihaofans/Core.js/"
     };
     $.file.mkdirs(this.DATA_DIR.SHARED);
     $.file.mkdirs(this.DATA_DIR.ICLOUD);
