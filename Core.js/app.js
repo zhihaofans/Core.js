@@ -54,7 +54,8 @@ class AppKernel {
       this.DATA_DIR.ICLOUD = path;
       if (!this.DATA_DIR.ICLOUD.endsWith("/")) {
         this.DATA_DIR.ICLOUD += "/";
-      }$.file.mkdirs(this.DATA_DIR.ICLOUD);
+      }
+      $.file.mkdirs(this.DATA_DIR.ICLOUD);
     }
   }
   setLocalDataDir(path) {
