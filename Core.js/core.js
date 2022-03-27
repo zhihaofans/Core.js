@@ -37,9 +37,7 @@ class Core {
       this.CORE_INFO.DATABASE_ID.length > 0 && this.Kernel.DEFAULE_SQLITE_FILE
         ? this.initSQLite()
         : undefined;
-    this.KEYCHAIN_DOMAIN = this.CORE_INFO.KEYCHAIN_DOMAIN;
     this.Keychain = new this.Storage.Keychain(this.CORE_INFO.KEYCHAIN_DOMAIN);
-    this.IGNORE_CORE_VERSION = ignoreCoreVersion === true;
   }
   checkCoreVersion() {
     if (CORE_VERSION === this.CORE_INFO.CORE_VERSION) {
