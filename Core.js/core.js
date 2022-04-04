@@ -60,7 +60,6 @@ class Core {
 class ModLoader {
   constructor({ app, modDir }) {
     this.App = app;
-    this.Kernel = app.kernelIndex;
     this.MOD_DIR = modDir;
     this.modList = { id: [], mods: {} };
     this.WIDGET_MOD_ID = undefined;
