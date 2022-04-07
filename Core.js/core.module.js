@@ -1,4 +1,5 @@
-const __VERSION__ = 1;
+const __VERSION__ = 1,
+  $ = require("./$");
 class CoreModule {
   constructor({ coreId, moduleId, moduleName, author, version }) {
     this.CORE_ID = coreId;
