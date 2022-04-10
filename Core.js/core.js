@@ -62,7 +62,7 @@ class CoreLoader {
   constructor({ app, modDir }) {
     this.App = app;
     this.MOD_DIR = modDir;
-    this.modList = { id: [], mods: {}, needUpdate: [] };
+    this.modList = { id: [], mods: {} };
     this.WIDGET_MOD_ID = undefined;
   }
   addCore(modCore) {
