@@ -66,7 +66,11 @@ class CoreLoader {
     this.WIDGET_MOD_ID = undefined;
   }
   addCore(modCore) {
-    if (typeof modCore.run == "function") {
+    if (
+      typeof modCore.run == "function" ||
+      typeof modCore.runWidget == "function" ||
+      typeof modCore.runContext == "function"
+    ) {
       if (
         modCore.CORE_INFO.ID.length > 0 &&
         modCore.CORE_INFO.NAME.length > 0 &&
