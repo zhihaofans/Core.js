@@ -29,7 +29,6 @@ class AppKernel {
       this.kernelDebug(`debug:${this.DEBUG}`);
     }
     this.checkJsboxVersion();
-    this.WIDGET_MOD_ID = undefined;
   }
   l10n(l10nRes) {
     const result = {};
