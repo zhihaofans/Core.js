@@ -64,6 +64,7 @@ class CoreLoader {
     this.MOD_DIR = modDir;
     this.modList = { id: [], mods: {} };
     this.WIDGET_MOD_ID = undefined;
+    this.CONCEXT_MOD_ID = undefined;
   }
   addCore(modCore) {
     if (
@@ -153,13 +154,11 @@ class CoreLoader {
       typeof this.modList.mods[modId].runWidget == "function"
     ) {
       this.WIDGET_MOD_ID = modId;
-      this.App.WIDGET_MOD_ID = modId;
     }
   }
   runWidgetCore() {
     const modId = this.WIDGET_MOD_ID,
       thisMod = this.modList.mods[modId];
-    $console.warn(thisMod);
     try {
       thisMod.runWidget();
     } catch (error) {
@@ -174,6 +173,25 @@ class CoreLoader {
           };
         }
       });
+    }
+  }
+  setContextCore(coreId) {
+    if (
+      this.modList.id.indexOf(coreId) >= 0 &&
+      typeof this.modList.mods[coreId].runContext == "function"
+    ) {
+      this.CONTEXT_CORE_ID = coreId;
+    }
+  }
+  runContextCore() {
+    const coreId = this.CONTEXT_CORE_ID;
+    if (coreId.length >= 0) {
+      const thisCore = this.modList.mods[coreId];
+      try {
+        thisCore.runContext();
+      } catch (error) {
+        $console.error(error);
+      }
     }
   }
 }
