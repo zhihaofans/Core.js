@@ -209,7 +209,6 @@ module.exports = {
   http: new Http(),
   share: new Share(),
   string: new Str(),
-  time: new Datetime(),
   toInt,
   warn
 };
