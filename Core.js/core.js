@@ -185,13 +185,15 @@ class CoreLoader {
   }
   runContextCore() {
     const coreId = this.CONTEXT_CORE_ID;
-    if (coreId.length >= 0) {
+    if (coreId && coreId.length >= 0) {
       const thisCore = this.modList.mods[coreId];
       try {
         thisCore.runContext();
       } catch (error) {
         $console.error(error);
       }
+    } else {
+      $app.close();
     }
   }
 }
