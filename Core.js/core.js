@@ -256,6 +256,10 @@ class ModuleLoader {
         });
         return false;
       }
+      if (thisModule.AUTHOR == undefined || thisModule.AUTHOR.length <= 0) {
+        thisModule.AUTHOR = this.Core.CORE_INFO.AUTHOR;
+        $console.info(`自动为模块${thisModule.CORE_ID}添加mod的作者(${this.Core.CORE_INFO.AUTHOR})`)
+      }
       this.ModuleList[thisModule.MODULE_ID] = thisModule;
       $console.info(
         `Mod[${this.Core.CORE_INFO.NAME}]加载module[${thisModule.MODULE_NAME}]`
