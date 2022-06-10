@@ -29,7 +29,7 @@ class ListView {
   constructor(name) {
     this.NAME = name;
   }
-  pushSimpleList(title, listData) {
+  pushSimpleList(title, listData, defaultFunc) {
     //    const listData = [
     //      {
     //        title: "标题",
@@ -70,6 +70,15 @@ class ListView {
               ) {
                 try {
                   clickItem.func();
+                } catch (error) {
+                  $console.error(error);
+                }
+              } else if (
+                defaultFunc != undefined &&
+                typeof defaultFunc == "function"
+              ) {
+                try {
+                  defaultFunc();
                 } catch (error) {
                   $console.error(error);
                 }
