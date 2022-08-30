@@ -232,6 +232,7 @@ class ModLoader {
     if (modId && modId.length >= 0) {
       const thisMod = this.MOD_LIST.mods[modId];
       try {
+        $keyboard.height = 360;
         thisMod.runKeyboard();
       } catch (error) {
         $console.error(error);
