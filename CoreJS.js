@@ -810,6 +810,10 @@ class SQLite {
 module.exports = {
   CORE_VERSION,
   AppKernel,
+  Core: ModCore,
+  CoreLoader: ModLoader,
+  CoreModule: ModModule,
+  ModuleLoader: ModModuleLoader,
   ModCore,
   ModLoader,
   ModModule,
