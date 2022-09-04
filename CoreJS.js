@@ -1,9 +1,11 @@
-const CORE_VERSION = 8,
-  $ = require("$");
+const VERSION = 8,
+  $ = require("$"),
+  { Storage } = require("Next");
 class AppKernel {
   constructor({ appId, modDir, l10nPath }) {
     this.START_TIME = new Date().getTime();
     this.$ = $;
+    this.Storage = Storage;
     this.MOD_DIR = modDir;
     this.DEBUG = $app.isDebugging;
     this.AppConfig = JSON.parse($file.read("/config.json"));
@@ -37,6 +39,7 @@ class AppKernel {
       });
     });
     $app.strings = result;
+    $.info(`l10n:count=${Object.keys(l10nRes)}`);
   }
   getLocale() {
     return $app.info.locale;
@@ -111,10 +114,11 @@ class ModCore {
       CORE_VERSION: coreVersion,
       DATABASE_ID: modId,
       KEYCHAIN_DOMAIN: `nobundo.mods.${author}.${modId}`,
+      KEYCHAIN_DOMAIN_NEW: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
       USE_SQLITE: useSqlite == true,
       ICON: icon,
       IMAGE: image,
-      NEED_UPDATE: coreVersion != CORE_VERSION
+      NEED_UPDATE: coreVersion != VERSION
     };
     this.SQLITE_FILE = app.DEFAULE_SQLITE_FILE;
     this.SQLITE =
@@ -123,10 +127,13 @@ class ModCore {
       app.DEFAULE_SQLITE_FILE
         ? this.initSQLite()
         : undefined;
-    this.Keychain = new app.Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
+    this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
   }
   initSQLite() {
-    const SQLite = new ModSQLite(this.SQLITE_FILE, this.MOD_INFO.DATABASE_ID);
+    const SQLite = new Storage.ModSQLite(
+      this.SQLITE_FILE,
+      this.MOD_INFO.DATABASE_ID
+    );
     SQLite.createTable();
     return SQLite;
   }
@@ -230,7 +237,7 @@ class ModLoader {
   setWidgetMod(modId) {
     if (
       this.MOD_LIST.id.indexOf(modId) >= 0 &&
-      this.$.isFunction(this.MOD_LIST.mods[modId].runWidget)
+      $.isFunction(this.MOD_LIST.mods[modId].runWidget)
     ) {
       this.CONFIG.WIDGET_MOD_ID = modId;
     }
@@ -356,7 +363,7 @@ class ModLoader {
         });
       }
     } else {
-      //      $app.close();
+      //$app.close();
       $ui.render({
         props: {
           title: "初始化错误"
@@ -590,225 +597,10 @@ class ModModuleLoader {
     return this.ModuleList[moduleId];
   }
 }
-class ModSQLite {
-  constructor(dataBaseFile, tableId) {
-    this.TABLE_ID = tableId;
-    this.SQLITE = new SQLite(dataBaseFile);
-  }
-  hasTable() {
-    return this.SQLITE.hasTable(this.TABLE_ID);
-  }
-  createTable() {
-    this.SQLITE.createSimpleTable(this.TABLE_ID);
-  }
-  getItem(key) {
-    return this.SQLITE.getSimpleData(this.TABLE_ID, key);
-  }
-  setItem(key, value) {
-    return this.SQLITE.setSimpleData(this.TABLE_ID, key, value);
-  }
-  deleteItem(key) {
-    const sql = `DELETE FROM ${this.TABLE_ID} WHERE key=${key}`;
-    return this.SQLITE.update(sql);
-  }
-  getError(sqlResult) {
-    return this.SQLITE.getError(sqlResult);
-  }
-}
-class SQLite {
-  constructor(dataBaseFile) {
-    this.DATABASEFILE = dataBaseFile;
-  }
-  hasTable(tableId) {
-    const result = this.query(`SELECT * FROM ${tableId}`);
-    $console.info(this.getError(result));
-    if (result.error) {
-      $console.error(result.error);
-    }
-    return result.error == undefined;
-  }
-  init() {
-    return $sqlite.open(this.DATABASEFILE);
-  }
-  update(sql, args = undefined) {
-    const db = this.init(),
-      result = db.update({
-        sql: sql,
-        args: args
-      });
-    db.close();
-    return result;
-  }
-  query(sql, args = undefined) {
-    const db = this.init(),
-      queryResult = db.query({
-        sql,
-        args
-      });
-    db.close();
-    return queryResult;
-  }
-  queryAll(tableId) {
-    const result = {
-        result: undefined,
-        error: undefined
-      },
-      sql = `SELECT * FROM ${tableId}`,
-      handler = (rs, err) => {
-        if (err == undefined) {
-          const queryResultList = [];
-          while (rs.next()) {
-            queryResultList.push(rs.values);
-          }
-          result.result = queryResultList;
-        } else {
-          result.error = err;
-          $console.error(err);
-        }
-        rs.close();
-      };
-    this.queryHandler(sql, handler);
-    return result;
-  }
-  queryHandler(sql, handler = undefined) {
-    this.init().query(sql, handler);
-  }
-  createSimpleTable(table_id) {
-    if (table_id != undefined && table_id.length > 0) {
-      try {
-        const db = this.init(),
-          sql = `CREATE TABLE IF NOT EXISTS ${table_id}(id TEXT PRIMARY KEY NOT NULL, value TEXT)`;
-        db.update({ sql: sql, args: undefined });
-        db.close();
-      } catch (error) {
-        $console.error(error);
-      }
-    } else {
-      $console.error("createSimpleTable:table_id = undefined");
-    }
-  }
-  parseSimpleQuery(result) {
-    try {
-      if (result) {
-        if (result.error !== null) {
-          $console.error(result.error);
-          return undefined;
-        }
-        const sqlResult = result.result,
-          data = [];
-        while (sqlResult.next()) {
-          data.push({
-            id: sqlResult.get("id"),
-            value: sqlResult.get("value")
-          });
-        }
-        sqlResult.close();
-        return data;
-      } else {
-        return undefined;
-      }
-    } catch (error) {
-      $console.error(`parseSimpleQuery:${error.message}`);
-      return undefined;
-    }
-  }
-  parseQueryResult(result) {
-    try {
-      if (result) {
-        if (result.error !== null) {
-          $console.error(result.error);
-          return undefined;
-        }
-        const sqlResult = result.result,
-          data = [];
-        while (sqlResult.next()) {
-          data.push(sqlResult.values);
-        }
-        sqlResult.close();
-        return data;
-      } else {
-        return undefined;
-      }
-    } catch (error) {
-      $console.error(`parseQueryResult:${error.message}`);
-      return undefined;
-    }
-  }
-  getSimpleData(table, key) {
-    try {
-      if (table && key) {
-        this.createSimpleTable(table);
-        const db = this.init(),
-          sql = `SELECT * FROM ${table} WHERE id = ?`,
-          args = [key],
-          result = db.query({
-            sql: sql,
-            args: args
-          }),
-          sql_data = this.parseSimpleQuery(result);
-        if (sql_data && sql_data.length === 1) {
-          return sql_data[0].value;
-        } else {
-          return undefined;
-        }
-      } else {
-        return undefined;
-      }
-    } catch (error) {
-      $console.error(`getSimpleData:${error.message}`);
-      return undefined;
-    }
-  }
-  setSimpleData(table, key, value) {
-    try {
-      if (table && key) {
-        this.createSimpleTable(table);
-        const db = this.init(),
-          sql = this.getSimpleData(table, key)
-            ? `UPDATE ${table} SET value=? WHERE id=?`
-            : `INSERT INTO ${table} (value,id) VALUES (?, ?)`,
-          args = [value, key],
-          update_result = db.update({
-            sql: sql,
-            args: args
-          });
-        db.close();
-        return update_result.result || false;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      $console.error(`setSimpleData:${error.message}`);
-      return false;
-    }
-  }
-  auto(table, sql_key, value = undefined) {
-    this.createSimpleTable(table);
-    if (!sql_key || !table) {
-      return undefined;
-    }
-    try {
-      if (value) {
-        this.setSimpleData(table, sql_key, value.toString());
-      }
-      return this.getSimpleData(table, sql_key);
-    } catch (error) {
-      $console.error(`SQLite.auto:${error.message}`);
-      return undefined;
-    }
-  }
-  getError(sqlResult) {
-    const isError =
-      sqlResult.result == undefined || sqlResult.error != undefined;
-    return {
-      error: isError,
-      code: isError ? sqlResult.error.code : undefined,
-      message: isError ? sqlResult.error.localizedDescription : "success"
-    };
-  }
-}
+
 module.exports = {
-  CORE_VERSION,
+  CORE_VERSION: VERSION,
+  VERSION,
   AppKernel,
   Core: ModCore,
   CoreLoader: ModLoader,
