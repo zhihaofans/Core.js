@@ -1,3 +1,4 @@
+const VERSION = 1;
 class DateTime {
   constructor(mode) {
     this.DATE_TIME = new Date(); //pickDateTime后可修改
@@ -79,6 +80,269 @@ class DateTime {
   }
   getUnixTime() {
     return this.DATE_TIME.getTime();
+  }
+}
+class Keychain {
+  constructor(domain) {
+    this.DOMAIN = domain.toLowerCase();
+  }
+  get(key) {
+    return $keychain.get(key, this.DOMAIN);
+  }
+  set(key, value) {
+    return $keychain.set(key, value, this.DOMAIN);
+  }
+  getValue(key) {
+    return $keychain.get(key, this.DOMAIN);
+  }
+  setValue(key, value) {
+    return $keychain.set(key, value, this.DOMAIN);
+  }
+  getAll() {
+    const keys = $keychain.keys(),
+      result = {};
+    keys.map(key => {
+      result[key] = $keychain.get(key, this.DOMAIN);
+    });
+    return result;
+  }
+  remove(key) {
+    return $keychain.remove(key, this.DOMAIN);
+  }
+}
+class ObjectKit {
+  constructor(object) {
+    this.OBJECT = object;
+  }
+  isFunction() {
+    return this.isNotNull() && typeof this.OBJECT == "function";
+  }
+  isNotNull() {
+    return this.OBJECT != undefined && this.OBJECT != null;
+  }
+  isNumber() {
+    return this.isNotNull() && typeof this.OBJECT == "number";
+  }
+  isString() {
+    return this.isNotNull() && typeof this.OBJECT == "string";
+  }
+}
+
+class ModSQLite {
+  constructor(dataBaseFile, tableId) {
+    this.TABLE_ID = tableId;
+    this.SQLITE = new SQLite(dataBaseFile);
+  }
+  hasTable() {
+    return this.SQLITE.hasTable(this.TABLE_ID);
+  }
+  createTable() {
+    this.SQLITE.createSimpleTable(this.TABLE_ID);
+  }
+  getItem(key) {
+    return this.SQLITE.getSimpleData(this.TABLE_ID, key);
+  }
+  setItem(key, value) {
+    return this.SQLITE.setSimpleData(this.TABLE_ID, key, value);
+  }
+  deleteItem(key) {
+    const sql = `DELETE FROM ${this.TABLE_ID} WHERE key=${key}`;
+    return this.SQLITE.update(sql);
+  }
+  getError(sqlResult) {
+    return this.SQLITE.getError(sqlResult);
+  }
+}
+class SQLite {
+  constructor(dataBaseFile) {
+    this.DATABASEFILE = dataBaseFile;
+  }
+  hasTable(tableId) {
+    const result = this.query(`SELECT * FROM ${tableId}`);
+    $console.info(this.getError(result));
+    if (result.error) {
+      $console.error(result.error);
+    }
+    return result.error == undefined;
+  }
+  init() {
+    return $sqlite.open(this.DATABASEFILE);
+  }
+  update(sql, args = undefined) {
+    const db = this.init(),
+      result = db.update({
+        sql: sql,
+        args: args
+      });
+    db.close();
+    return result;
+  }
+  query(sql, args = undefined) {
+    const db = this.init(),
+      queryResult = db.query({
+        sql,
+        args
+      });
+    db.close();
+    return queryResult;
+  }
+  queryAll(tableId) {
+    const result = {
+        result: undefined,
+        error: undefined
+      },
+      sql = `SELECT * FROM ${tableId}`,
+      handler = (rs, err) => {
+        if (err == undefined) {
+          const queryResultList = [];
+          while (rs.next()) {
+            queryResultList.push(rs.values);
+          }
+          result.result = queryResultList;
+        } else {
+          result.error = err;
+          $console.error(err);
+        }
+        rs.close();
+      };
+    this.queryHandler(sql, handler);
+    return result;
+  }
+  queryHandler(sql, handler = undefined) {
+    this.init().query(sql, handler);
+  }
+  createSimpleTable(table_id) {
+    if (table_id != undefined && table_id.length > 0) {
+      try {
+        const db = this.init(),
+          sql = `CREATE TABLE IF NOT EXISTS ${table_id}(id TEXT PRIMARY KEY NOT NULL, value TEXT)`;
+        db.update({ sql: sql, args: undefined });
+        db.close();
+      } catch (error) {
+        $console.error(error);
+      }
+    } else {
+      $console.error("createSimpleTable:table_id = undefined");
+    }
+  }
+  parseSimpleQuery(result) {
+    try {
+      if (result) {
+        if (result.error !== null) {
+          $console.error(result.error);
+          return undefined;
+        }
+        const sqlResult = result.result,
+          data = [];
+        while (sqlResult.next()) {
+          data.push({
+            id: sqlResult.get("id"),
+            value: sqlResult.get("value")
+          });
+        }
+        sqlResult.close();
+        return data;
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      $console.error(`parseSimpleQuery:${error.message}`);
+      return undefined;
+    }
+  }
+  parseQueryResult(result) {
+    try {
+      if (result) {
+        if (result.error !== null) {
+          $console.error(result.error);
+          return undefined;
+        }
+        const sqlResult = result.result,
+          data = [];
+        while (sqlResult.next()) {
+          data.push(sqlResult.values);
+        }
+        sqlResult.close();
+        return data;
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      $console.error(`parseQueryResult:${error.message}`);
+      return undefined;
+    }
+  }
+  getSimpleData(table, key) {
+    try {
+      if (table && key) {
+        this.createSimpleTable(table);
+        const db = this.init(),
+          sql = `SELECT * FROM ${table} WHERE id = ?`,
+          args = [key],
+          result = db.query({
+            sql: sql,
+            args: args
+          }),
+          sql_data = this.parseSimpleQuery(result);
+        if (sql_data && sql_data.length === 1) {
+          return sql_data[0].value;
+        } else {
+          return undefined;
+        }
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      $console.error(`getSimpleData:${error.message}`);
+      return undefined;
+    }
+  }
+  setSimpleData(table, key, value) {
+    try {
+      if (table && key) {
+        this.createSimpleTable(table);
+        const db = this.init(),
+          sql = this.getSimpleData(table, key)
+            ? `UPDATE ${table} SET value=? WHERE id=?`
+            : `INSERT INTO ${table} (value,id) VALUES (?, ?)`,
+          args = [value, key],
+          update_result = db.update({
+            sql: sql,
+            args: args
+          });
+        db.close();
+        return update_result.result || false;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      $console.error(`setSimpleData:${error.message}`);
+      return false;
+    }
+  }
+  auto(table, sql_key, value = undefined) {
+    this.createSimpleTable(table);
+    if (!sql_key || !table) {
+      return undefined;
+    }
+    try {
+      if (value) {
+        this.setSimpleData(table, sql_key, value.toString());
+      }
+      return this.getSimpleData(table, sql_key);
+    } catch (error) {
+      $console.error(`SQLite.auto:${error.message}`);
+      return undefined;
+    }
+  }
+  getError(sqlResult) {
+    const isError =
+      sqlResult.result == undefined || sqlResult.error != undefined;
+    return {
+      error: isError,
+      code: isError ? sqlResult.error.code : undefined,
+      message: isError ? sqlResult.error.localizedDescription : "success"
+    };
   }
 }
 class ListView {
@@ -302,7 +566,14 @@ class UiKit {
 }
 
 module.exports = {
+  VERSION,
   DateTime,
   ListView,
+  Object: ObjectKit,
+  Storage: {
+    Keychain,
+    ModSQLite,
+    SQLite
+  },
   UiKit
 };
