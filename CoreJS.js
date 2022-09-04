@@ -39,7 +39,7 @@ class AppKernel {
       });
     });
     $app.strings = result;
-    $.info(`l10n:count=${Object.keys(l10nRes)}`);
+    $.info(`l10n:count=${Object.keys(l10nRes).length}`);
   }
   getLocale() {
     return $app.info.locale;
