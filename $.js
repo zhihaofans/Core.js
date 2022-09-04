@@ -1,4 +1,9 @@
 const VERSION = 1;
+function debug(message) {
+  if ($app.isDebugging == true) {
+    info(message);
+  }
+}
 function error(message) {
   $console.error(message);
 }
@@ -235,7 +240,6 @@ class StringKit {
     return typeof string === "string";
   }
 }
-
 module.exports = {
   VERSION,
   alert: new Alert(),
@@ -243,6 +247,7 @@ module.exports = {
   base64Encode: $text.base64Encode,
   base64Decode: $text.base64Decode,
   dateTime: new Datetime(),
+  debug,
   error,
   getUUID,
   icon: new Icon(),
