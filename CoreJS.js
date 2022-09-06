@@ -113,7 +113,7 @@ class ModCore {
       AUTHOR: author,
       CORE_VERSION: coreVersion,
       DATABASE_ID: modId,
-      KEYCHAIN_DOMAIN: `nobundo.mods.${author}.${modId}`,
+      KEYCHAIN_DOMAIN: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_NEW: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
       USE_SQLITE: useSqlite == true,
