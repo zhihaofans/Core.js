@@ -1,4 +1,4 @@
-const VERSION = 8,
+const VERSION = 9,
   $ = require("$"),
   { Storage } = require("Next");
 class AppKernel {
@@ -103,7 +103,11 @@ class ModCore {
     version,
     author,
     coreVersion,
-    useSqlite
+    useSqlite,
+    allowApi,
+    allowContext,
+    allowKeyboard,
+    allowWidget
   }) {
     this.App = app;
     this.MOD_INFO = {
@@ -119,7 +123,11 @@ class ModCore {
       USE_SQLITE: useSqlite == true,
       ICON: icon,
       IMAGE: image,
-      NEED_UPDATE: coreVersion != VERSION
+      NEED_UPDATE: coreVersion != VERSION,
+      ALLOW_API: allowApi == true,
+      ALLOW_CONTEXT: allowContext == true,
+      ALLOW_KEYBOARD: allowKeyboard == true,
+      ALLOW_WIDGET: allowWidget == true
     };
     this.SQLITE_FILE = app.DEFAULE_SQLITE_FILE;
     this.SQLITE = this.initSQLite();
@@ -156,7 +164,17 @@ class ModLoader {
     };
   }
   addMod(modCore) {
+    const {
+      ALLOW_API,
+      ALLOW_CONTEXT,
+      ALLOW_KEYBOARD,
+      ALLOW_WIDGET
+    } = modCore.MOD_INFO;
     if (
+      ALLOW_API ||
+      ALLOW_CONTEXT ||
+      ALLOW_KEYBOARD ||
+      ALLOW_WIDGET ||
       $.isFunction(modCore.run) ||
       $.isFunction(modCore.runWidget) ||
       $.isFunction(modCore.runContext) ||
@@ -241,6 +259,7 @@ class ModLoader {
   setWidgetMod(modId) {
     if (
       this.MOD_LIST.id.indexOf(modId) >= 0 &&
+      this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_WIDGET &&
       $.isFunction(this.MOD_LIST.mods[modId].runWidget)
     ) {
       this.CONFIG.WIDGET_MOD_ID = modId;
@@ -267,6 +286,7 @@ class ModLoader {
   setContextMod(modId) {
     if (
       this.MOD_LIST.id.indexOf(modId) >= 0 &&
+      this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_CONTEXT &&
       $.isFunction(this.MOD_LIST.mods[modId].runContext)
     ) {
       this.ACTION_MOD_ID = modId;
@@ -286,17 +306,14 @@ class ModLoader {
       $app.close();
     }
   }
-  isModSupportApi(modId) {
-    if (modId && modId.length >= 0) {
-      const thisMod = this.MOD_LIST.mods[modId];
-      return thisMod != undefined && $.isFunction(thisMod.runApi);
-    }
-    return false;
-  }
   runModApi({ modId, apiId, data }) {
     if (modId && modId.length >= 0) {
       const thisMod = this.MOD_LIST.mods[modId];
-      if (thisMod != undefined && $.isFunction(thisMod.runApi)) {
+      if (
+        thisMod != undefined &&
+        this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_API &&
+        $.isFunction(thisMod.runApi)
+      ) {
         try {
           return thisMod.runApi(apiId, data);
         } catch (error) {
@@ -321,6 +338,7 @@ class ModLoader {
   setKeyboardMod(modId) {
     if (
       this.MOD_LIST.id.indexOf(modId) >= 0 &&
+      this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_KEYBOARD &&
       $.isFunction(this.MOD_LIST.mods[modId].runKeyboard)
     ) {
       this.CONFIG.KEYBOARD_MOD_ID = modId;
