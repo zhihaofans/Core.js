@@ -115,27 +115,31 @@ class ModCore {
       DATABASE_ID: modId,
       KEYCHAIN_DOMAIN: `nobundo.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_NEW: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
+      KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
       USE_SQLITE: useSqlite == true,
       ICON: icon,
       IMAGE: image,
       NEED_UPDATE: coreVersion != VERSION
     };
     this.SQLITE_FILE = app.DEFAULE_SQLITE_FILE;
-    this.SQLITE =
-      this.MOD_INFO.USE_SQLITE &&
-      this.MOD_INFO.DATABASE_ID.length > 0 &&
-      app.DEFAULE_SQLITE_FILE
-        ? this.initSQLite()
-        : undefined;
-    this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
+    this.SQLITE = this.initSQLite();
+    this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN_OLD);
   }
   initSQLite() {
-    const SQLite = new Storage.ModSQLite(
-      this.SQLITE_FILE,
-      this.MOD_INFO.DATABASE_ID
-    );
-    SQLite.createTable();
-    return SQLite;
+    if (
+      this.MOD_INFO.USE_SQLITE &&
+      this.MOD_INFO.DATABASE_ID.length > 0 &&
+      this.App.DEFAULE_SQLITE_FILE
+    ) {
+      const SQLite = new Storage.ModSQLite(
+        this.SQLITE_FILE,
+        this.MOD_INFO.DATABASE_ID
+      );
+      SQLite.createTable();
+      return SQLite;
+    } else {
+      return undefined;
+    }
   }
 }
 class ModLoader {
