@@ -38,6 +38,9 @@ class ArrayKit {
       return undefined;
     }
   }
+  isArray(data) {
+    return Array.isArray(data);
+  }
 }
 
 class Datetime {
@@ -252,6 +255,7 @@ module.exports = {
   getUUID,
   icon: new Icon(),
   info,
+  isArray: new ArrayKit().isArray,
   isFunction,
   isString: new StringKit().isString,
   isNumber: new NumberKit().isNumber,
