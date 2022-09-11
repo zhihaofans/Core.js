@@ -132,18 +132,18 @@ class ModCore {
       ALLOW_WIDGET: allowWidget == true,
       ALLOW_WIDGET_SIZE: AllowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
     };
-    this.SQLITE_FILE = app.DEFAULE_SQLITE_FILE;
     this.SQLITE = this.initSQLite();
     this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
   }
   initSQLite() {
+    const SQLITE_FILE = this.app.DEFAULE_SQLITE_FILE;
     if (
       this.MOD_INFO.USE_SQLITE &&
       this.MOD_INFO.DATABASE_ID.length > 0 &&
-      this.App.DEFAULE_SQLITE_FILE
+      SQLITE_FILE.length > 0
     ) {
       const SQLite = new Storage.ModSQLite(
-        this.SQLITE_FILE,
+        SQLITE_FILE,
         this.MOD_INFO.DATABASE_ID
       );
       SQLite.createTable();
