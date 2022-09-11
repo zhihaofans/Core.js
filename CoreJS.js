@@ -134,7 +134,7 @@ class ModCore {
     };
     this.SQLITE_FILE = app.DEFAULE_SQLITE_FILE;
     this.SQLITE = this.initSQLite();
-    this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN_OLD);
+    this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
   }
   initSQLite() {
     if (
@@ -624,7 +624,6 @@ class ModModuleLoader {
     return this.ModuleList[moduleId];
   }
 }
-
 module.exports = {
   CORE_VERSION: VERSION,
   VERSION,
