@@ -191,7 +191,7 @@ class ModLoader {
       ) {
         const modId = modCore.MOD_INFO.ID;
         if (
-          this.MOD_LIST.id.includes(modId) &&
+          !this.MOD_LIST.id.includes(modId) &&
           this.MOD_LIST.mods[modId] == undefined
         ) {
           this.MOD_LIST.id.push(modId);
