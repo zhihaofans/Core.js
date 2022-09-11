@@ -191,7 +191,7 @@ class ModLoader {
       ) {
         const modId = modCore.MOD_INFO.ID;
         if (
-          this.MOD_LIST.id.indexOf(modId) < 0 &&
+          this.MOD_LIST.id.includes(modId) &&
           this.MOD_LIST.mods[modId] == undefined
         ) {
           this.MOD_LIST.id.push(modId);
@@ -205,20 +205,6 @@ class ModLoader {
     } else {
       $console.error(4);
     }
-  }
-  addCoreByList(fileNameList) {
-    fileNameList.map(fileName => {
-      try {
-        const thisMod = require(this.MOD_DIR + fileName);
-        this.addMod(new thisMod(this.App));
-      } catch (error) {
-        $console.error({
-          message: error.message,
-          fileName,
-          name: "ModLoader.addCoreByList"
-        });
-      }
-    });
   }
   addModsByList(fileNameList) {
     fileNameList.map(fileName => {
@@ -305,7 +291,7 @@ class ModLoader {
   }
   setContextMod(modId) {
     if (
-      this.MOD_LIST.id.indexOf(modId) >= 0 &&
+      this.MOD_LIST.id.includes(modId) &&
       this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_CONTEXT &&
       $.isFunction(this.MOD_LIST.mods[modId].runContext)
     ) {
@@ -357,7 +343,7 @@ class ModLoader {
   }
   setKeyboardMod(modId) {
     if (
-      this.MOD_LIST.id.indexOf(modId) >= 0 &&
+      this.MOD_LIST.id.includes(modId) &&
       this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_KEYBOARD &&
       $.isFunction(this.MOD_LIST.mods[modId].runKeyboard)
     ) {
@@ -405,7 +391,6 @@ class ModLoader {
         });
       }
     } else {
-      //$app.close();
       $ui.render({
         props: {
           title: "初始化错误"
