@@ -1,6 +1,7 @@
 const VERSION = 9,
   $ = require("$"),
-  { Storage } = require("Next");
+  { Storage } = require("Next"),
+  WIDGET_FAMILY_SIZE = $widget.family;
 class AppKernel {
   constructor({ appId, modDir, l10nPath }) {
     this.START_TIME = new Date().getTime();
@@ -107,7 +108,8 @@ class ModCore {
     allowApi,
     allowContext,
     allowKeyboard,
-    allowWidget
+    allowWidget,
+    AllowWidgetSize
   }) {
     this.App = app;
     this.MOD_INFO = {
@@ -127,7 +129,8 @@ class ModCore {
       ALLOW_API: allowApi == true,
       ALLOW_CONTEXT: allowContext == true,
       ALLOW_KEYBOARD: allowKeyboard == true,
-      ALLOW_WIDGET: allowWidget == true
+      ALLOW_WIDGET: allowWidget == true,
+      ALLOW_WIDGET_SIZE: AllowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
     };
     this.SQLITE_FILE = app.DEFAULE_SQLITE_FILE;
     this.SQLITE = this.initSQLite();
@@ -258,7 +261,7 @@ class ModLoader {
   }
   setWidgetMod(modId) {
     if (
-      this.MOD_LIST.id.indexOf(modId) >= 0 &&
+      this.MOD_LIST.id.includes(modId) &&
       this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_WIDGET &&
       $.isFunction(this.MOD_LIST.mods[modId].runWidget)
     ) {
@@ -266,9 +269,26 @@ class ModLoader {
     }
   }
   runWidgetMod() {
-    const thisMod = this.MOD_LIST.mods[this.CONFIG.WIDGET_MOD_ID];
+    const inputValue = $widget.inputValue;
     try {
-      thisMod.runWidget();
+      if (this.MOD_LIST.id.includes(inputValue)) {
+        this.setWidgetMod(inputValue);
+      }
+      const thisMod = this.MOD_LIST.mods[this.CONFIG.WIDGET_MOD_ID];
+      if (thisMod.MOD_INFO.ALLOW_WIDGET_SIZE.includes(WIDGET_FAMILY_SIZE)) {
+        thisMod.runWidget();
+      } else {
+        $widget.setTimeline({
+          render: ctx => {
+            return {
+              type: "text",
+              props: {
+                text: "不支持该尺寸"
+              }
+            };
+          }
+        });
+      }
     } catch (error) {
       $console.error(error);
       $widget.setTimeline({
