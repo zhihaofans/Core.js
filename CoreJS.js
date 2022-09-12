@@ -136,7 +136,7 @@ class ModCore {
     this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
   }
   initSQLite() {
-    const SQLITE_FILE = this.app.DEFAULE_SQLITE_FILE;
+    const SQLITE_FILE = this.App.DEFAULE_SQLITE_FILE;
     if (
       this.MOD_INFO.USE_SQLITE &&
       this.MOD_INFO.DATABASE_ID.length > 0 &&
