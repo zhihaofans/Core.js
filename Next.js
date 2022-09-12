@@ -365,6 +365,29 @@ class ListView {
     this.AUTO_ROW_HEIGHT = false;
     this.ESTIMATED_ROW_HEIGHT = undefined;
   }
+  pushSimpleText(title, textList, didSelect = index => {}) {
+    $ui.push({
+      props: {
+        title
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            autoRowHeight: this.AUTO_ROW_HEIGHT,
+            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
+            data: textList
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              didSelect(indexPath.row);
+            }
+          }
+        }
+      ]
+    });
+  }
   pushSimpleList(title, listData, defaultFunc) {
     //    const listData = [
     //      {
