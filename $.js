@@ -202,6 +202,29 @@ class Icon {
     );
   }
 }
+class JSBoxKit {
+  constructor() {}
+  isActionEnv() {
+    return $app.env == $env.action;
+  }
+  isAppEnv() {
+    return $app.env == $env.app;
+  }
+  isKeyboardEnv() {
+    return $app.env == $env.keyboard;
+  }
+  isContextEnv() {
+    return $app.env == $env.action;
+  }
+  isSafariEnv() {
+    return $app.env == $env.safari;
+  }
+
+  isWidgetEnv() {
+    return $app.env == $env.widget;
+  }
+}
+
 class NumberKit {
   constructor() {}
   toInt(data) {
@@ -252,15 +275,23 @@ module.exports = {
   dateTime: new Datetime(),
   debug,
   error,
+  file: new File(),
   getUUID,
+  http: new Http(),
   icon: new Icon(),
   info,
+  isActionEnv: new JSBoxKit().isActionEnv,
+  isAppEnv: new JSBoxKit().isAppEnv,
   isArray: new ArrayKit().isArray,
+  isContext: new JSBoxKit().isContextEnv,
+  isDebug: $app.isDebugging == true,
   isFunction,
-  isString: new StringKit().isString,
+  isKeyboardEnv: new JSBoxKit().isKeyboardEnv,
   isNumber: new NumberKit().isNumber,
-  file: new File(),
-  http: new Http(),
+  isSafariEnv: new JSBoxKit().isSafariEnv,
+  isString: new StringKit().isString,
+  isWidgetEnv: new JSBoxKit().isWidgetEnv,
+  jsboxKit: new JSBoxKit(),
   share: new Share(),
   string: new StringKit(),
   toInt: new NumberKit().toInt,
