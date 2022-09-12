@@ -125,6 +125,202 @@ class Keychain {
     });
   }
 }
+class ListView {
+  constructor() {
+    this.AUTO_ROW_HEIGHT = false;
+    this.ESTIMATED_ROW_HEIGHT = undefined;
+  }
+  pushSimpleText(title, textList, didSelect = index => {}) {
+    $ui.push({
+      props: {
+        title
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            autoRowHeight: this.AUTO_ROW_HEIGHT,
+            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
+            data: textList
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              didSelect(indexPath.row);
+            }
+          }
+        }
+      ]
+    });
+  }
+  pushSimpleList(title, listData, defaultFunc) {
+    //    const listData = [
+    //      {
+    //        title: "标题",
+    //        rows: [
+    //          {
+    //            title: "列表项",
+    //            func: data => {
+    //              // 会自动带入所选项的文本到data
+    //            }
+    //          }
+    //        ]
+    //      }
+    //    ];
+    $ui.push({
+      props: {
+        title
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            autoRowHeight: this.AUTO_ROW_HEIGHT,
+            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
+            data: listData.map(group => {
+              return {
+                title: group.title,
+                rows: group.rows.map(row => row.title.toString())
+              };
+            })
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              const section = indexPath.section,
+                row = indexPath.row,
+                clickItem = listData[section].rows[row];
+              if (
+                clickItem.func != undefined &&
+                typeof clickItem.func == "function"
+              ) {
+                try {
+                  clickItem.func(data);
+                } catch (error) {
+                  $console.error(error);
+                }
+              } else if (
+                defaultFunc != undefined &&
+                typeof defaultFunc == "function"
+              ) {
+                try {
+                  defaultFunc(data);
+                } catch (error) {
+                  $console.error(error);
+                }
+              }
+            }
+          }
+        }
+      ]
+    });
+  }
+  setAutoRowHeight(autoRowHeight) {
+    this.AUTO_ROW_HEIGHT = autoRowHeight == true;
+  }
+  setEstimatedRowHeight(estimatedRowHeight) {
+    this.ESTIMATED_ROW_HEIGHT = estimatedRowHeight || 10;
+  }
+  pushTwoLineList({
+    id,
+    title,
+    navButtons,
+    items = [
+      {
+        title: "title",
+        subTitle: "subTitle"
+      }
+    ],
+    handler = (section, row, data) => {
+      $console.info({
+        section,
+        row,
+        data
+      });
+    }
+  }) {
+    $ui.push({
+      props: {
+        id,
+        title,
+        navButtons
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            autoRowHeight: this.AUTO_ROW_HEIGHT,
+            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
+            template: {
+              props: {
+                bgcolor: $color("clear")
+              },
+              views: [
+                {
+                  type: "stack",
+                  props: {
+                    axis: $stackViewAxis.vertical,
+                    spacing: 5,
+                    distribution: $stackViewDistribution.fillProportionally,
+                    stack: {
+                      views: [
+                        {
+                          type: "label",
+                          props: {
+                            id: "title",
+
+                            align: $align.left,
+                            font: $font(24)
+                          },
+                          layout: make => {
+                            make.height.equalTo(24);
+                            make.left.top.right.inset(5);
+                          }
+                        },
+                        {
+                          type: "label",
+                          props: {
+                            id: "subTitle",
+
+                            align: $align.left,
+                            font: $font(12),
+                            textColor: $color("gray")
+                          },
+                          layout: make => {
+                            make.height.equalTo(40);
+                            make.top.left.right.bottom.inset(2);
+                            //                            make.top.equalTo($("labelTitle").bottom);
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  layout: $layout.fill
+                }
+              ]
+            },
+            data: items.map(item => {
+              return {
+                title: {
+                  text: item.title
+                },
+                subTitle: {
+                  text: item.subTitle
+                }
+              };
+            })
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              handler(indexPath.section, indexPath.row, data);
+            }
+          }
+        }
+      ]
+    });
+  }
+}
 class ObjectKit {
   constructor(object) {
     this.OBJECT = object;
@@ -142,7 +338,6 @@ class ObjectKit {
     return this.isNotNull() && typeof this.OBJECT == "string";
   }
 }
-
 class ModSQLite {
   constructor(dataBaseFile, tableId) {
     this.TABLE_ID = tableId;
@@ -360,202 +555,6 @@ class SQLite {
     };
   }
 }
-class ListView {
-  constructor() {
-    this.AUTO_ROW_HEIGHT = false;
-    this.ESTIMATED_ROW_HEIGHT = undefined;
-  }
-  pushSimpleText(title, textList, didSelect = index => {}) {
-    $ui.push({
-      props: {
-        title
-      },
-      views: [
-        {
-          type: "list",
-          props: {
-            autoRowHeight: this.AUTO_ROW_HEIGHT,
-            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
-            data: textList
-          },
-          layout: $layout.fill,
-          events: {
-            didSelect: (sender, indexPath, data) => {
-              didSelect(indexPath.row);
-            }
-          }
-        }
-      ]
-    });
-  }
-  pushSimpleList(title, listData, defaultFunc) {
-    //    const listData = [
-    //      {
-    //        title: "标题",
-    //        rows: [
-    //          {
-    //            title: "列表项",
-    //            func: data => {
-    //              // 会自动带入所选项的文本到data
-    //            }
-    //          }
-    //        ]
-    //      }
-    //    ];
-    $ui.push({
-      props: {
-        title
-      },
-      views: [
-        {
-          type: "list",
-          props: {
-            autoRowHeight: this.AUTO_ROW_HEIGHT,
-            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
-            data: listData.map(group => {
-              return {
-                title: group.title,
-                rows: group.rows.map(row => row.title.toString())
-              };
-            })
-          },
-          layout: $layout.fill,
-          events: {
-            didSelect: (sender, indexPath, data) => {
-              const section = indexPath.section,
-                row = indexPath.row,
-                clickItem = listData[section].rows[row];
-              if (
-                clickItem.func != undefined &&
-                typeof clickItem.func == "function"
-              ) {
-                try {
-                  clickItem.func(data);
-                } catch (error) {
-                  $console.error(error);
-                }
-              } else if (
-                defaultFunc != undefined &&
-                typeof defaultFunc == "function"
-              ) {
-                try {
-                  defaultFunc(data);
-                } catch (error) {
-                  $console.error(error);
-                }
-              }
-            }
-          }
-        }
-      ]
-    });
-  }
-  setAutoRowHeight(autoRowHeight) {
-    this.AUTO_ROW_HEIGHT = autoRowHeight == true;
-  }
-  setEstimatedRowHeight(estimatedRowHeight) {
-    this.ESTIMATED_ROW_HEIGHT = estimatedRowHeight || 10;
-  }
-  pushTwoLineList({
-    id,
-    title,
-    navButtons,
-    items = [
-      {
-        title: "title",
-        subTitle: "subTitle"
-      }
-    ],
-    handler = (section, row, data) => {
-      $console.info({
-        section,
-        row,
-        data
-      });
-    }
-  }) {
-    $ui.push({
-      props: {
-        id,
-        title,
-        navButtons
-      },
-      views: [
-        {
-          type: "list",
-          props: {
-            autoRowHeight: this.AUTO_ROW_HEIGHT,
-            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
-            template: {
-              props: {
-                bgcolor: $color("clear")
-              },
-              views: [
-                {
-                  type: "stack",
-                  props: {
-                    axis: $stackViewAxis.vertical,
-                    spacing: 5,
-                    distribution: $stackViewDistribution.fillProportionally,
-                    stack: {
-                      views: [
-                        {
-                          type: "label",
-                          props: {
-                            id: "title",
-
-                            align: $align.left,
-                            font: $font(24)
-                          },
-                          layout: make => {
-                            make.height.equalTo(24);
-                            make.left.top.right.inset(5);
-                          }
-                        },
-                        {
-                          type: "label",
-                          props: {
-                            id: "subTitle",
-
-                            align: $align.left,
-                            font: $font(12),
-                            textColor: $color("gray")
-                          },
-                          layout: make => {
-                            make.height.equalTo(40);
-                            make.top.left.right.bottom.inset(2);
-                            //                            make.top.equalTo($("labelTitle").bottom);
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  layout: $layout.fill
-                }
-              ]
-            },
-            data: items.map(item => {
-              return {
-                title: {
-                  text: item.title
-                },
-                subTitle: {
-                  text: item.subTitle
-                }
-              };
-            })
-          },
-          layout: $layout.fill,
-          events: {
-            didSelect: (sender, indexPath, data) => {
-              handler(indexPath.section, indexPath.row, data);
-            }
-          }
-        }
-      ]
-    });
-  }
-}
 class UiKit {
   constructor() {}
   showMenu(menuList, handler = idx => {}) {
@@ -598,11 +597,9 @@ class UiKit {
           ]
         });
         break;
-      default:
     }
   }
 }
-
 module.exports = {
   VERSION,
   DateTime,
