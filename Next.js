@@ -138,9 +138,9 @@ class Http {
       if (paramsStr != "?") {
         paramsStr += "&";
       }
-      paramsStr += key + "=" + params[key];
+      paramsStr += key + "=" + $text.URLEncode(params[key]);
     });
-    return $text.URLEncode(paramsStr);
+    return paramsStr;
   }
   async post({ url, header, timeout, body, params }) {
     const newUrl = this.concatUrlParams(url, params);
