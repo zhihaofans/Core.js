@@ -82,6 +82,77 @@ class DateTime {
     return this.DATE_TIME.getTime();
   }
 }
+class Http {
+  constructor(timeout) {
+    this.TIMEOUT = timeout || 5;
+  }
+  concatUrlParams(url, params) {
+    let newUrl = url;
+    if (params != undefined && Object.keys(params).length > 0) {
+      if (url.includes("?")) {
+        newUrl = url.substring(0, url.indexOf("?"));
+      }
+      newUrl += this.paramsToUrl(params);
+    }
+    return newUrl;
+  }
+  cookieToObject(cookie) {
+    if (cookie) {
+      const cookieResult = {};
+      cookie.split(";").map(cookieItem => {
+        const itemSplit = cookieItem.trim().split("="),
+          itemKey = itemSplit[0],
+          itemValve = itemSplit[1];
+        cookieResult[itemKey] = itemValve;
+      });
+      return cookieResult;
+    } else {
+      return undefined;
+    }
+  }
+  async get({ url, header, params }) {
+    const newUrl = this.concatUrlParams(url, params);
+    return await $http.get({
+      url: newUrl,
+      timeout: this.TIMEOUT,
+      header: header
+    });
+  }
+  async head({ url, header, params }) {
+    const newUrl = this.concatUrlParams(url, params);
+    return await $http.request({
+      method: "HEAD",
+      url: newUrl,
+      timeout: this.TIMEOUT,
+      header
+    });
+  }
+  paramsToUrl(params) {
+    //const params = {aaa: "aaa"};
+    const keys = Object.keys(params);
+    if (keys.length == 0) {
+      return "";
+    }
+    let paramsStr = "?";
+    keys.map(key => {
+      if (paramsStr != "?") {
+        paramsStr += "&";
+      }
+      paramsStr += key + "=" + params[key];
+    });
+    return $text.URLEncode(paramsStr);
+  }
+  async post({ url, header, timeout, body, params }) {
+    const newUrl = this.concatUrlParams(url, params);
+    return await $http.post({
+      url: newUrl,
+      header,
+      timeout: this.TIMEOUT,
+      body
+    });
+  }
+}
+
 class Keychain {
   constructor(domain) {
     this.DOMAIN = domain.toLowerCase();
@@ -321,23 +392,6 @@ class ListView {
     });
   }
 }
-class ObjectKit {
-  constructor(object) {
-    this.OBJECT = object;
-  }
-  isFunction() {
-    return this.isNotNull() && typeof this.OBJECT == "function";
-  }
-  isNotNull() {
-    return this.OBJECT != undefined && this.OBJECT != null;
-  }
-  isNumber() {
-    return this.isNotNull() && typeof this.OBJECT == "number";
-  }
-  isString() {
-    return this.isNotNull() && typeof this.OBJECT == "string";
-  }
-}
 class ModSQLite {
   constructor(dataBaseFile, tableId) {
     this.TABLE_ID = tableId;
@@ -361,6 +415,23 @@ class ModSQLite {
   }
   getError(sqlResult) {
     return this.SQLITE.getError(sqlResult);
+  }
+}
+class ObjectKit {
+  constructor(object) {
+    this.OBJECT = object;
+  }
+  isFunction() {
+    return this.isNotNull() && typeof this.OBJECT == "function";
+  }
+  isNotNull() {
+    return this.OBJECT != undefined && this.OBJECT != null;
+  }
+  isNumber() {
+    return this.isNotNull() && typeof this.OBJECT == "number";
+  }
+  isString() {
+    return this.isNotNull() && typeof this.OBJECT == "string";
   }
 }
 class SQLite {
@@ -603,6 +674,7 @@ class UiKit {
 module.exports = {
   VERSION,
   DateTime,
+  Http,
   ListView,
   Object: ObjectKit,
   Storage: {
