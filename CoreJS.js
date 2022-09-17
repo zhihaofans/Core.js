@@ -164,6 +164,7 @@ class ModLoader {
       WIDGET_MOD_ID: undefined,
       GRID_LIST_MODE: gridListMode == true
     };
+    this.WidgetLoader = new WidgetLoader(this);
   }
   addMod(modCore) {
     const {
@@ -258,23 +259,24 @@ class ModLoader {
   runWidgetMod() {
     const inputValue = $widget.inputValue;
     try {
-      if (this.MOD_LIST.id.includes(inputValue)) {
-        this.setWidgetMod(inputValue);
-      }
-      const thisMod = this.MOD_LIST.mods[this.CONFIG.WIDGET_MOD_ID];
-      if (thisMod.MOD_INFO.ALLOW_WIDGET_SIZE.includes(WIDGET_FAMILY_SIZE)) {
-        thisMod.runWidget();
+      if (inputValue != undefined && inputValue.length > 0) {
+        this.WidgetLoader.runWidget(inputValue);
       } else {
-        $widget.setTimeline({
-          render: ctx => {
-            return {
-              type: "text",
-              props: {
-                text: "不支持该尺寸"
-              }
-            };
-          }
-        });
+        const thisMod = this.MOD_LIST.mods[this.CONFIG.WIDGET_MOD_ID];
+        if (thisMod.MOD_INFO.ALLOW_WIDGET_SIZE.includes(WIDGET_FAMILY_SIZE)) {
+          thisMod.runWidget();
+        } else {
+          $widget.setTimeline({
+            render: ctx => {
+              return {
+                type: "text",
+                props: {
+                  text: "不支持该尺寸"
+                }
+              };
+            }
+          });
+        }
       }
     } catch (error) {
       $console.error(error);
@@ -644,7 +646,21 @@ class WidgetLoader {
     return Object.keys(this.WIDGET_REGISTER_LIST).includes(id);
   }
   registerWidget({ modId, id, size, title }) {
-    if (this.isRegistered(id) || !this.canRunWidget(modId)) {
+    const allowSize = [
+      $widgetFamily.accessoryCircular,
+      $widgetFamily.accessoryInline,
+      $widgetFamily.accessoryRectangular,
+      $widgetFamily.large,
+      $widgetFamily.medium,
+      $widgetFamily.medium,
+      $widgetFamily.small,
+      $widgetFamily.xLarge
+    ];
+    if (
+      this.isRegistered(id) ||
+      !this.canRunWidget(modId) ||
+      !allowSize.includes(size)
+    ) {
       return false;
     }
     this.WIDGET_REGISTER_LIST[id] = {
@@ -653,7 +669,7 @@ class WidgetLoader {
       size,
       title
     };
-    if (Object.keys(this.MOD_REGISTER_LIST).includes(modId)) {
+    if (!Object.keys(this.MOD_REGISTER_LIST).includes(modId)) {
       this.MOD_REGISTER_LIST[modId] = [];
     }
     this.MOD_REGISTER_LIST[modId].push(id);
@@ -662,11 +678,16 @@ class WidgetLoader {
   runWidget(id) {
     if (!this.isRegistered(id)) {
       throw {
-        message: `is not registered(${id})`
+        message: `not register(${id})`
       };
     }
     const thisWidget = this.WIDGET_REGISTER_LIST[id],
       thisMod = this.ModLoader.getMod(thisWidget.modId);
+    if (WIDGET_FAMILY_SIZE != thisWidget.size) {
+      throw {
+        message: `not allow size(${id})`
+      };
+    }
     thisMod.runWidget(id);
   }
 }
