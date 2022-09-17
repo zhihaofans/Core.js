@@ -1,4 +1,4 @@
-const VERSION = 9,
+const VERSION = 10,
   $ = require("$"),
   { Storage } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -40,7 +40,6 @@ class AppKernel {
       });
     });
     $app.strings = result;
-    $.info(`l10n:count=${Object.keys(l10nRes).length}`);
   }
   getLocale() {
     return $app.info.locale;
@@ -226,10 +225,12 @@ class ModLoader {
   getMod(modId) {
     return this.MOD_LIST.mods[modId];
   }
+  hasMod(modId) {
+    return this.MOD_LIST.id.includes(modId);
+  }
   runMod(modId) {
-    const thisMod = this.MOD_LIST.mods[modId];
     try {
-      thisMod.run();
+      this.MOD_LIST.mods[modId].run();
     } catch (error) {
       $console.error(error);
       $ui.alert({
@@ -602,7 +603,7 @@ class ModModuleLoader {
       if (thisModule.AUTHOR == undefined || thisModule.AUTHOR.length <= 0) {
         thisModule.AUTHOR = this.Mod.MOD_INFO.AUTHOR;
         $console.info(
-          `自动为模块${thisModule.MOD_ID}添加mod的作者(${this.Mod.MOD_INFO.AUTHOR})`
+          `自动为模块${thisModule.MODULE_ID}添加mod的作者(${this.Mod.MOD_INFO.AUTHOR})`
         );
       }
       this.ModuleList[thisModule.MODULE_ID] = thisModule;
@@ -624,6 +625,52 @@ class ModModuleLoader {
     return this.ModuleList[moduleId];
   }
 }
+class WidgetLoader {
+  constructor(modLoader) {
+    this.ModLoader = modLoader;
+    this.App = modLoader.App;
+    this.WIDGET_REGISTER_LIST = {};
+    this.MOD_REGISTER_LIST = {};
+  }
+  canRunWidget(modId) {
+    return (
+      this.hasMod(modId) && $.isFunction(this.ModLoader.getMod(modId).runWidget)
+    );
+  }
+  hasMod(modId) {
+    return this.ModLoader.hasMod(modId);
+  }
+  isRegistered(id) {
+    return Object.keys(this.WIDGET_REGISTER_LIST).includes(id);
+  }
+  registerWidget({ modId, id, size, title }) {
+    if (this.isRegistered(id) || !this.canRunWidget(modId)) {
+      return false;
+    }
+    this.WIDGET_REGISTER_LIST[id] = {
+      id,
+      modId,
+      size,
+      title
+    };
+    if (Object.keys(this.MOD_REGISTER_LIST).includes(modId)) {
+      this.MOD_REGISTER_LIST[modId] = [];
+    }
+    this.MOD_REGISTER_LIST[modId].push(id);
+    return this.isRegistered(id);
+  }
+  runWidget(id) {
+    if (!this.isRegistered(id)) {
+      throw {
+        message: `is not registered(${id})`
+      };
+    }
+    const thisWidget = this.WIDGET_REGISTER_LIST[id],
+      thisMod = this.ModLoader.getMod(thisWidget.modId);
+    thisMod.runWidget(id);
+  }
+}
+
 module.exports = {
   CORE_VERSION: VERSION,
   VERSION,
@@ -635,5 +682,6 @@ module.exports = {
   ModCore,
   ModLoader,
   ModModule,
-  ModModuleLoader
+  ModModuleLoader,
+  WidgetLoader
 };
