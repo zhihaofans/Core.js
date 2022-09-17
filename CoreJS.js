@@ -635,8 +635,11 @@ class WidgetLoader {
     this.MOD_REGISTER_LIST = {};
   }
   canRunWidget(modId) {
+    const thisMod = this.ModLoader.getMod(modId);
     return (
-      this.hasMod(modId) && $.isFunction(this.ModLoader.getMod(modId).runWidget)
+      this.hasMod(modId) &&
+      thisMod.MOD_INFO.ALLOW_WIDGET &&
+      $.isFunction(thisMod.runWidget)
     );
   }
   hasMod(modId) {
@@ -651,7 +654,6 @@ class WidgetLoader {
       $widgetFamily.accessoryInline,
       $widgetFamily.accessoryRectangular,
       $widgetFamily.large,
-      $widgetFamily.medium,
       $widgetFamily.medium,
       $widgetFamily.small,
       $widgetFamily.xLarge
