@@ -639,6 +639,7 @@ class WidgetLoader {
     return (
       this.hasMod(modId) &&
       thisMod.MOD_INFO.ALLOW_WIDGET &&
+      !thisMod.MOD_INFO.NEED_UPDATE &&
       $.isFunction(thisMod.runWidget)
     );
   }
