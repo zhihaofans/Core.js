@@ -315,7 +315,7 @@ class ModLoader {
       $app.close();
     }
   }
-  runModApi({ modId, apiId, data }) {
+  runModApi({ modId, apiId, data, callback }) {
     if (modId && modId.length >= 0) {
       const thisMod = this.MOD_LIST.mods[modId];
       if (
@@ -324,7 +324,8 @@ class ModLoader {
         $.isFunction(thisMod.runApi)
       ) {
         try {
-          return thisMod.runApi(apiId, data);
+          thisMod.runApi({ apiId, data, callback });
+          return true;
         } catch (error) {
           $console.error(error);
           return false;
