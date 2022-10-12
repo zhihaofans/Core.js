@@ -410,8 +410,8 @@ class ModSQLite {
     return this.SQLITE.setSimpleData(this.TABLE_ID, key, value);
   }
   deleteItem(key) {
-    const sql = `DELETE FROM ${this.TABLE_ID} WHERE key=${key}`;
-    return this.SQLITE.update(sql);
+    const sql = `DELETE FROM ${this.TABLE_ID} WHERE id=?`;
+    return this.SQLITE.update(sql, [key]);
   }
   getError(sqlResult) {
     return this.SQLITE.getError(sqlResult);
