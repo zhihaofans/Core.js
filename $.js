@@ -265,6 +265,17 @@ class StringKit {
   isString(string) {
     return typeof string === "string";
   }
+  startsWithList(string, list) {
+    if (this.hasString(string) || !new ArrayKit().isArray(list)) {
+      return false;
+    }
+    list.map(item => {
+      if (string.startsWith(item)) {
+        return true;
+      }
+    });
+    return false;
+  }
 }
 module.exports = {
   VERSION,
