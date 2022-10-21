@@ -1,12 +1,10 @@
-const VERSION = 10,
+const VERSION = 11,
   $ = require("$"),
   { Storage } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
 class AppKernel {
   constructor({ appId, modDir, l10nPath }) {
     this.START_TIME = new Date().getTime();
-    this.$ = $;
-    this.Storage = Storage;
     this.MOD_DIR = modDir;
     this.DEBUG = $app.isDebugging;
     this.AppConfig = JSON.parse($file.read("/config.json"));
@@ -98,8 +96,6 @@ class ModCore {
     app,
     modId,
     modName,
-    icon,
-    image,
     version,
     author,
     coreVersion,
@@ -108,7 +104,7 @@ class ModCore {
     allowContext,
     allowKeyboard,
     allowWidget,
-    AllowWidgetSize
+    allowWidgetSize
   }) {
     this.App = app;
     this.MOD_INFO = {
@@ -122,14 +118,15 @@ class ModCore {
       KEYCHAIN_DOMAIN_NEW: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
       USE_SQLITE: useSqlite == true,
-      ICON: icon,
-      IMAGE: image,
       NEED_UPDATE: coreVersion != VERSION,
       ALLOW_API: allowApi == true,
       ALLOW_CONTEXT: allowContext == true,
       ALLOW_KEYBOARD: allowKeyboard == true,
       ALLOW_WIDGET: allowWidget == true,
-      ALLOW_WIDGET_SIZE: AllowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
+      ALLOW_WIDGET_SIZE:
+        allowWidget == true
+          ? allowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
+          : undefined
     };
     this.SQLITE = this.initSQLite();
     this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
@@ -153,10 +150,10 @@ class ModCore {
   }
 }
 class ModLoader {
-  constructor({ app, modDir, gridListMode = false }) {
+  constructor({ app, modDir, modList, gridListMode = false }) {
     this.App = app;
+    this.MOD_LIST_LOAD_FINISH = false;
     this.MOD_DIR = modDir;
-    this.$ = $;
     this.MOD_LIST = { id: [], mods: {} };
     this.CONFIG = {
       CONTEXT_MOD_ID: undefined,
@@ -165,6 +162,10 @@ class ModLoader {
       GRID_LIST_MODE: gridListMode == true
     };
     this.WidgetLoader = new WidgetLoader(this);
+    if ($.isArray(modList)) {
+      this.addModsByList(modList);
+      this.MOD_LIST_LOAD_FINISH = true;
+    }
   }
   addMod(modCore) {
     const {
@@ -207,18 +208,20 @@ class ModLoader {
     }
   }
   addModsByList(fileNameList) {
-    fileNameList.map(fileName => {
-      try {
-        const thisMod = require(this.MOD_DIR + fileName);
-        this.addMod(new thisMod(this.App));
-      } catch (error) {
-        $console.error({
-          message: error.message,
-          fileName,
-          name: "ModLoader.addModsByList"
-        });
-      }
-    });
+    if (this.MOD_LIST_LOAD_FINISH != true) {
+      fileNameList.map(fileName => {
+        try {
+          const thisMod = require(this.MOD_DIR + fileName);
+          this.addMod(new thisMod(this.App));
+        } catch (error) {
+          $console.error({
+            message: error.message,
+            fileName,
+            name: "ModLoader.addModsByList"
+          });
+        }
+      });
+    }
   }
   getModList() {
     return this.MOD_LIST;
@@ -543,12 +546,12 @@ class ModLoader {
   }
 }
 class ModModule {
-  constructor({ modId, coreId, moduleId, moduleName, author, version }) {
-    this.CORE_ID = modId || coreId;
-    this.MOD_ID = modId;
-    this.MODULE_ID = moduleId;
-    this.MODULE_NAME = moduleName;
-    this.AUTHOR = author;
+  constructor({ author, id, mod, name, version }) {
+    this.Mod = mod;
+    this.MOD_ID = mod.MOD_INFO.ID;
+    this.MODULE_ID = id;
+    this.MODULE_NAME = name;
+    this.AUTHOR = author || mod.MOD_INFO.AUTHOR;
     this.VERSION = version;
   }
 }
