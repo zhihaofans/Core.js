@@ -288,6 +288,7 @@ module.exports = {
   error,
   file: new File(),
   getUUID,
+  hasString: new StringKit().hasString,
   http: new Http(),
   icon: new Icon(),
   info,
