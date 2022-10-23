@@ -19,25 +19,30 @@ class AppKernel {
     $.file.mkdirs(this.DATA_DIR.SHARED);
     $.file.mkdirs(this.DATA_DIR.ICLOUD);
     $.file.mkdirs(this.DATA_DIR.LOCAL);
-    this.l10n(require(l10nPath));
+    this.l10n(l10nPath);
     if (this.DEBUG) {
       $.info(`appName:${this.AppInfo.name}`);
       $.info(`appId:${this.AppInfo.id}`);
       $.info(`debug:${this.DEBUG}`);
     }
   }
-  l10n(l10nRes) {
-    const result = {};
-    Object.keys(l10nRes).map(key => {
-      const thisItem = l10nRes[key];
-      Object.keys(thisItem).map(lang => {
-        if (!result[lang]) {
-          result[lang] = {};
-        }
-        result[lang][key] = thisItem[lang];
+  l10n(l10nPath) {
+    if ($.file.isFileExist(l10nPath)) {
+      const l10nRes = require(l10nPath),
+        result = {};
+      Object.keys(l10nRes).map(key => {
+        const thisItem = l10nRes[key];
+        Object.keys(thisItem).map(lang => {
+          if (!result[lang]) {
+            result[lang] = {};
+          }
+          result[lang][key] = thisItem[lang];
+        });
       });
-    });
-    $app.strings = result;
+      $app.strings = result;
+    } else {
+      $.error("CoreJS.AppKernel:l10nPath is not exist");
+    }
   }
   getLocale() {
     return $app.info.locale;
