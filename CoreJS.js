@@ -150,12 +150,14 @@ class ModCore {
   }
 }
 class ModLoader {
-  constructor({ app, modDir, modList, gridListMode = false }) {
+  constructor({ app, appMode, modDir, modList, gridListMode = false }) {
     this.App = app;
+    this.APP_MODE = appMode == true;
     this.MOD_LIST_LOAD_FINISH = false;
     this.MOD_DIR = modDir;
     this.MOD_LIST = { id: [], mods: {} };
     this.CONFIG = {
+      APP_MODE_INDEX_MOD_ID: undefined,
       CONTEXT_MOD_ID: undefined,
       KEYBOARD_MOD_ID: undefined,
       WIDGET_MOD_ID: undefined,
@@ -262,7 +264,7 @@ class ModLoader {
   runWidgetMod() {
     const inputValue = $widget.inputValue;
     try {
-      if (inputValue != undefined && inputValue.length > 0) {
+      if ($.hasString(inputValue)) {
         this.WidgetLoader.runWidget(inputValue);
       } else {
         const thisMod = this.MOD_LIST.mods[this.CONFIG.WIDGET_MOD_ID];
@@ -307,7 +309,7 @@ class ModLoader {
   }
   runContextMod() {
     const modId = this.CONFIG.CONTEXT_MOD_ID;
-    if (modId && modId.length >= 0) {
+    if ($.hasString(modId)) {
       const thisMod = this.MOD_LIST.mods[modId];
       try {
         thisMod.runContext();
@@ -359,7 +361,7 @@ class ModLoader {
   }
   runKeyboardMod() {
     const modId = this.CONFIG.KEYBOARD_MOD_ID;
-    if (modId && modId.length >= 0) {
+    if ($.hasString(modId)) {
       const thisMod = this.MOD_LIST.mods[modId];
       try {
         $keyboard.height = 360;
@@ -419,6 +421,27 @@ class ModLoader {
       });
     }
   }
+  setAppModeIndexMod(modId) {
+    if (
+      this.MOD_LIST.id.includes(modId) &&
+      $.isFunction(this.MOD_LIST.mods[modId].run)
+    ) {
+      this.CONFIG.APP_MODE_INDEX_MOD_ID = modId;
+    }
+  }
+  runAppModeIndexMod() {
+    const modId = this.CONFIG.APP_MODE_INDEX_MOD_ID;
+    if ($.hasString(modId)) {
+      const thisMod = this.MOD_LIST.mods[modId];
+      try {
+        thisMod.run();
+      } catch (error) {
+        $console.error(error);
+      }
+    } else {
+      $app.close();
+    }
+  }
   autoRunMod() {
     switch (true) {
       case this.App.isWidgetEnv():
@@ -427,6 +450,8 @@ class ModLoader {
       case this.App.isAppEnv():
         if (this.CONFIG.GRID_LIST_MODE) {
           this.showGridModList();
+        } else if (this.CONFIG.APP_MODE_INDEX_MOD_ID) {
+          this.runAppModeIndexMod();
         } else {
           $ui.render({
             props: {
