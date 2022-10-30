@@ -32,11 +32,14 @@ class Alert {
 class ArrayKit {
   constructor() {}
   getLastItem(array) {
-    if (Array.isArray(array) && array.length > 0) {
+    if (this.hasArray(array)) {
       return array[array.length - 1];
     } else {
       return undefined;
     }
+  }
+  hasArray(data) {
+    return Array.isArray(data) && data.length > 0;
   }
   isArray(data) {
     return Array.isArray(data);
