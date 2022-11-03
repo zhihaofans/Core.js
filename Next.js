@@ -118,11 +118,19 @@ class Http {
       header: header
     });
   }
+  getAsnyc({ url, params, header, handler }) {
+    $http.get({
+      url: this.concatUrlParams(url, params),
+      params,
+      header,
+      timeout: this.TIMEOUT,
+      handler
+    });
+  }
   async head({ url, header, params }) {
-    const newUrl = this.concatUrlParams(url, params);
     return await $http.request({
       method: "HEAD",
-      url: newUrl,
+      url: this.concatUrlParams(url, params),
       timeout: this.TIMEOUT,
       header
     });
@@ -143,12 +151,19 @@ class Http {
     return paramsStr;
   }
   async post({ url, header, timeout, body, params }) {
-    const newUrl = this.concatUrlParams(url, params);
     return await $http.post({
-      url: newUrl,
+      url: this.concatUrlParams(url, params),
       header,
       timeout: this.TIMEOUT,
       body
+    });
+  }
+  postAsnyc({ url, params, body, header, handler }) {
+    $http.post({
+      url: this.concatUrlParams(url, params),
+      header,
+      timeout: this.TIMEOUT,
+      handler
     });
   }
 }
@@ -410,8 +425,12 @@ class ModSQLite {
     return this.SQLITE.setSimpleData(this.TABLE_ID, key, value);
   }
   deleteItem(key) {
-    const sql = `DELETE FROM ${this.TABLE_ID} WHERE id=?`;
-    return this.SQLITE.update(sql, [key]);
+    const sql = `DELETE FROM ${this.TABLE_ID} WHERE id=?`,
+      result = this.SQLITE.update(sql, [key]);
+    if (result.error) {
+      $console.error(result.error);
+    }
+    return result.result;
   }
   getError(sqlResult) {
     return this.SQLITE.getError(sqlResult);
@@ -671,6 +690,35 @@ class UiKit {
     }
   }
 }
+class UrlKit {
+  constructor(url) {
+    this.URL = new URL(url);
+    if (url == undefined || this.URL == undefined) {
+      throw { message: "url undefined" };
+    }
+  }
+  getHost() {
+    //return "www.example.com"
+    return this.URL.host;
+  }
+  getPathname() {
+    //return "/path"
+    return this.URL.pathname;
+  }
+  getProtocol() {
+    //return "https:"
+    return this.URL.protocol;
+  }
+  getSearch() {
+    //return "?a=1&b=2"
+    return this.URL.search;
+  }
+  getSearchParams() {
+    //return "URLSearchParams({a:1,b:2})"
+    //URLSearchParams.get(a)=1
+    return this.URL.searchParams;
+  }
+}
 module.exports = {
   VERSION,
   DateTime,
@@ -682,5 +730,6 @@ module.exports = {
     ModSQLite,
     SQLite
   },
-  UiKit
+  UiKit,
+  UrlKit
 };
