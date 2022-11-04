@@ -432,6 +432,8 @@ class ModLoader {
       $.isFunction(this.MOD_LIST.mods[modId].run)
     ) {
       this.CONFIG.APP_MODE_INDEX_MOD_ID = modId;
+    } else {
+      $console.error({ _: "setAppModeIndexMod", msg: "not modId" });
     }
   }
   runAppModeIndexMod() {
@@ -444,6 +446,7 @@ class ModLoader {
         $console.error(error);
       }
     } else {
+      $console.error({ _: "setAppModeIndexMod", msg: "not modId" });
       $app.close();
     }
   }
