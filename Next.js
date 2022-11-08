@@ -301,6 +301,55 @@ class ListView {
       ]
     });
   }
+  renderSimpleList(title, listData, defaultFunc) {
+    $ui.render({
+      props: {
+        title
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            autoRowHeight: this.AUTO_ROW_HEIGHT,
+            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
+            data: listData.map(group => {
+              return {
+                title: group.title,
+                rows: group.rows.map(row => row.title.toString())
+              };
+            })
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              const section = indexPath.section,
+                row = indexPath.row,
+                clickItem = listData[section].rows[row];
+              if (
+                clickItem.func != undefined &&
+                typeof clickItem.func == "function"
+              ) {
+                try {
+                  clickItem.func(data);
+                } catch (error) {
+                  $console.error(error);
+                }
+              } else if (
+                defaultFunc != undefined &&
+                typeof defaultFunc == "function"
+              ) {
+                try {
+                  defaultFunc(data);
+                } catch (error) {
+                  $console.error(error);
+                }
+              }
+            }
+          }
+        }
+      ]
+    });
+  }
   setAutoRowHeight(autoRowHeight) {
     this.AUTO_ROW_HEIGHT = autoRowHeight == true;
   }
