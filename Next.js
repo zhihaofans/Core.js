@@ -118,7 +118,7 @@ class Http {
       header: header
     });
   }
-  getAsnyc({ url, params, header, handler }) {
+  getAsync({ url, params, header, handler }) {
     $http.get({
       url: this.concatUrlParams(url, params),
       params,
@@ -158,7 +158,7 @@ class Http {
       body
     });
   }
-  postAsnyc({ url, params, body, header, handler }) {
+  postAsync({ url, params, body, header, handler }) {
     $http.post({
       url: this.concatUrlParams(url, params),
       header,
