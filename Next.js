@@ -768,6 +768,14 @@ class UrlKit {
     return this.URL.searchParams;
   }
 }
+class VariableKit {
+  constructor() {}
+  addToObject(obj, varList = {}) {
+    Object.keys(varList).map(key => {
+      obj[key] = varList[key];
+    });
+  }
+}
 module.exports = {
   VERSION,
   DateTime,
@@ -780,5 +788,6 @@ module.exports = {
     SQLite
   },
   UiKit,
-  UrlKit
+  UrlKit,
+  VariableKit
 };
