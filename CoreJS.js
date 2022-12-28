@@ -173,6 +173,7 @@ class ModLoader {
       this.addModsByList(modList);
       this.MOD_LIST_LOAD_FINISH = true;
     }
+    this.ApiManager = new ApiManager(this);
   }
   addMod(modCore) {
     const {
@@ -731,7 +732,46 @@ class WidgetLoader {
     thisMod.runWidget(id);
   }
 }
-
+class GlobalStorage {
+  constructor(app) {
+    this.App = app;
+  }
+}
+class ApiManager {
+  constructor(modLoader) {
+    this.ModLoader = modLoader;
+    this.API_LIST = {};
+  }
+  regApi({ apiId, modId, callback }) {
+    if (apiId == undefined || modId == undefined) {
+      return false;
+    } else if (!Object.keys(this.API_LIST).includes(apiId)) {
+      return false;
+    } else if (!this.ModLoader.hasMod(modId)) {
+      return false;
+    } else {
+      this.API_LIST[apiId] = {
+        modId,
+        callback
+      };
+      return true;
+    }
+  }
+  runApi({ apiId, data, callback }) {
+    if (Object.keys(this.API_LIST).includes(apiId)) {
+      const { modId, data, callback } = this.API_LIST[apiId],
+        thisMod = this.ModLoader.getMod(modId);
+      try {
+        thisMod.runApi({ apiId, data, callback });
+      } catch (error) {
+        $console.error(error);
+      }
+    } else {
+      $console.error({ _: "runApi", apiId, data, callback });
+      callback(undefined);
+    }
+  }
+}
 module.exports = {
   CORE_VERSION: VERSION,
   VERSION,
