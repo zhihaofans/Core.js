@@ -1,4 +1,4 @@
-const VERSION = 11,
+const VERSION = 12,
   $ = require("$"),
   { Storage } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -742,27 +742,52 @@ class ApiManager {
     this.ModLoader = modLoader;
     this.API_LIST = {};
   }
-  regApi({ apiId, modId, callback }) {
+  addApi({ apiId, modId, func }) {
     if (apiId == undefined || modId == undefined) {
       return false;
     } else if (!Object.keys(this.API_LIST).includes(apiId)) {
       return false;
     } else if (!this.ModLoader.hasMod(modId)) {
       return false;
+    } else if (!this.ModLoader.getMod(modId).MOD_INFO.ALLOW_API) {
+      return false;
     } else {
       this.API_LIST[apiId] = {
         modId,
-        callback
+        func
       };
       return true;
     }
   }
+  addApiList(modId, apiList) {
+    //    const apiItem = {
+    //      apiId,
+    //      func
+    //    };
+    if (modId == undefined || apiList == undefined || apiList.length == 0) {
+      return false;
+    } else {
+      let success = true;
+      apiList.map(apiItem => {
+        const { apiId, func } = apiItem,
+          addResult = this.addApi({
+            apiId,
+            func,
+            modId
+          });
+        if (addResult !== true) {
+          success = false;
+        }
+      });
+      return success;
+    }
+  }
   runApi({ apiId, data, callback }) {
     if (Object.keys(this.API_LIST).includes(apiId)) {
-      const { modId, data, callback } = this.API_LIST[apiId],
-        thisMod = this.ModLoader.getMod(modId);
+      const { data, func } = this.API_LIST[apiId];
+
       try {
-        thisMod.runApi({ apiId, data, callback });
+        func({ data, callback });
       } catch (error) {
         $console.error(error);
       }
