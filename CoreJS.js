@@ -3,7 +3,7 @@ const VERSION = 12,
   { Storage } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
 class AppKernel {
-  constructor({ appId, modDir, l10nPath }) {
+  constructor({ appId, modDir, modList, l10nPath }) {
     this.START_TIME = new Date().getTime();
     this.MOD_DIR = modDir;
     this.DEBUG = $app.isDebugging;
@@ -25,6 +25,7 @@ class AppKernel {
       $.info(`appId:${this.AppInfo.id}`);
       $.info(`debug:${this.DEBUG}`);
     }
+    this.ModLoader = new ModLoader({ modDir, app: this, modList });
   }
   l10n(l10nPath) {
     if ($.file.isFileExist(l10nPath)) {
@@ -109,7 +110,8 @@ class ModCore {
     allowContext,
     allowKeyboard,
     allowWidget,
-    allowWidgetSize
+    allowWidgetSize,
+    apiList
   }) {
     this.App = app;
     this.MOD_INFO = {
@@ -131,10 +133,14 @@ class ModCore {
       ALLOW_WIDGET_SIZE:
         allowWidget == true
           ? allowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
-          : undefined
+          : undefined,
+      API_LIST: apiList
     };
     this.SQLITE = this.initSQLite();
     this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
+    //    if (apiList && apiList.length > 0) {
+    //      app.ApiManager.addApiList(this.MOD_INFO.ID, apiList);
+    //    }
   }
   initSQLite() {
     const SQLITE_FILE = this.App.DEFAULE_SQLITE_FILE;
@@ -169,13 +175,13 @@ class ModLoader {
       GRID_LIST_MODE: gridListMode == true
     };
     this.WidgetLoader = new WidgetLoader(this);
+    this.ApiManager = new ApiManager(this);
     if ($.isArray(modList)) {
       this.addModsByList(modList);
-      this.MOD_LIST_LOAD_FINISH = true;
     }
-    this.ApiManager = new ApiManager(this);
   }
   addMod(modCore) {
+    if (this.MOD_LIST_LOAD_FINISH === true) return;
     const {
       ALLOW_API,
       ALLOW_CONTEXT,
@@ -203,16 +209,36 @@ class ModLoader {
           !this.MOD_LIST.id.includes(modId) &&
           this.MOD_LIST.mods[modId] == undefined
         ) {
+          if (modCore.MOD_INFO.CORE_VERSION >= 12) {
+            modCore.ApiManager = this.ApiManager;
+          }
           this.MOD_LIST.id.push(modId);
           this.MOD_LIST.mods[modId] = modCore;
+          if (
+            modCore.MOD_INFO.CORE_VERSION >= 12 &&
+            modCore.MOD_INFO.ALLOW_API &&
+            modCore.MOD_INFO.API_LIST !== undefined
+          ) {
+            const addApiResult = this.ApiManager.addApiList(
+              modCore.MOD_INFO.ID,
+              modCore.MOD_INFO.API_LIST
+            );
+            if (addApiResult !== true) {
+              $.error({
+                modId: modCore.MOD_INFO.ID,
+                apiList: modCore.MOD_INFO.API_LIST,
+                addApiResult
+              });
+            }
+          }
         } else {
-          $console.error(`modId(${modId})已存在`);
+          $.error(`modId(${modId})已存在`);
         }
       } else {
-        $console.error(3);
+        $.error(3);
       }
     } else {
-      $console.error(4);
+      $.error(4);
     }
   }
   addModsByList(fileNameList) {
@@ -222,13 +248,14 @@ class ModLoader {
           const thisMod = require(this.MOD_DIR + fileName);
           this.addMod(new thisMod(this.App));
         } catch (error) {
-          $console.error({
+          $.error({
             message: error.message,
             fileName,
             name: "ModLoader.addModsByList"
           });
         }
       });
+      this.MOD_LIST_LOAD_FINISH = true;
     }
   }
   getModList() {
@@ -244,7 +271,7 @@ class ModLoader {
     try {
       this.MOD_LIST.mods[modId].run();
     } catch (error) {
-      $console.error(error);
+      $.error(error);
       $ui.alert({
         title: `运行错误(${modId})`,
         message: error.message,
@@ -290,7 +317,7 @@ class ModLoader {
         }
       }
     } catch (error) {
-      $console.error(error);
+      $.error(error);
       $widget.setTimeline({
         render: ctx => {
           return {
@@ -320,7 +347,7 @@ class ModLoader {
       try {
         thisMod.runContext();
       } catch (error) {
-        $console.error(error);
+        $.error(error);
       }
     } else {
       $app.close();
@@ -338,18 +365,18 @@ class ModLoader {
           thisMod.runApi({ apiId, data, callback });
           return true;
         } catch (error) {
-          $console.error(error);
+          $.error(error);
           return false;
         }
       } else {
-        $console.error({
+        $.error({
           func: "runModApi",
           message: "need mod"
         });
         return false;
       }
     } else {
-      $console.error({
+      $.error({
         func: "runModApi",
         message: "need mod id"
       });
@@ -373,7 +400,7 @@ class ModLoader {
         $keyboard.height = 360;
         thisMod.runKeyboard();
       } catch (error) {
-        $console.error(error);
+        $.error(error);
         $ui.render({
           props: {
             title: "初始化错误"
@@ -434,7 +461,7 @@ class ModLoader {
     ) {
       this.CONFIG.APP_MODE_INDEX_MOD_ID = modId;
     } else {
-      $console.error({ _: "setAppModeIndexMod", msg: "not modId" });
+      $.error({ _: "setAppModeIndexMod", msg: "not modId" });
     }
   }
   runAppModeIndexMod() {
@@ -444,10 +471,10 @@ class ModLoader {
       try {
         thisMod.run();
       } catch (error) {
-        $console.error(error);
+        $.error(error);
       }
     } else {
-      $console.error({ _: "setAppModeIndexMod", msg: "not modId" });
+      $.error({ _: "setAppModeIndexMod", msg: "not modId" });
       $app.close();
     }
   }
@@ -598,7 +625,7 @@ class ModModuleLoader {
   }
   addModule(fileName) {
     if (fileName.length <= 0) {
-      $console.error({
+      $.error({
         name: "core.module.ModuleLoader.addModule",
         MOD_NAME: this.Mod.MOD_INFO.NAME,
         message: "需要module fileName",
@@ -609,7 +636,7 @@ class ModModuleLoader {
     }
     const modulePath = this.MOD_DIR + fileName;
     if (this.Mod.MOD_INFO.ID.length <= 0) {
-      $console.error({
+      $.error({
         name: "core.module.ModuleLoader.addModule",
         message: "需要Mod.MOD_INFO.ID",
         MOD_NAME: this.Mod.MOD_INFO.NAME
@@ -617,7 +644,7 @@ class ModModuleLoader {
       return false;
     }
     if (!$file.exists(modulePath) || $file.isDirectory(modulePath)) {
-      $console.error({
+      $.error({
         name: "core.module.ModuleLoader.addModule",
         message: "module文件不存在",
         MOD_NAME: this.Mod.MOD_INFO.NAME,
@@ -642,12 +669,12 @@ class ModModuleLoader {
       }
       if (thisModule.AUTHOR == undefined || thisModule.AUTHOR.length <= 0) {
         thisModule.AUTHOR = this.Mod.MOD_INFO.AUTHOR;
-        $console.info(
+        $.info(
           `自动为模块${thisModule.MODULE_ID}添加mod的作者(${this.Mod.MOD_INFO.AUTHOR})`
         );
       }
       this.ModuleList[thisModule.MODULE_ID] = thisModule;
-      $console.info(
+      $.info(
         `Mod[${this.Mod.MOD_INFO.NAME}]加载module[${thisModule.MODULE_NAME}]`
       );
       return true;
@@ -744,12 +771,36 @@ class ApiManager {
   }
   addApi({ apiId, modId, func }) {
     if (apiId == undefined || modId == undefined) {
+      $.error({
+        apiId,
+        func,
+        modId,
+        msg: "apiId或modId不存在"
+      });
       return false;
-    } else if (!Object.keys(this.API_LIST).includes(apiId)) {
+    } else if (Object.keys(this.API_LIST).includes(apiId)) {
+      $.error({
+        apiId,
+        func,
+        modId,
+        msg: "重复api"
+      });
       return false;
     } else if (!this.ModLoader.hasMod(modId)) {
+      $.error({
+        apiId,
+        func,
+        modId,
+        msg: "未注册mod"
+      });
       return false;
     } else if (!this.ModLoader.getMod(modId).MOD_INFO.ALLOW_API) {
+      $.error({
+        apiId,
+        func,
+        modId,
+        msg: "不允许api"
+      });
       return false;
     } else {
       this.API_LIST[apiId] = {
@@ -760,23 +811,23 @@ class ApiManager {
     }
   }
   addApiList(modId, apiList) {
-    //    const apiItem = {
-    //      apiId,
-    //      func
-    //    };
     if (modId == undefined || apiList == undefined || apiList.length == 0) {
       return false;
     } else {
       let success = true;
       apiList.map(apiItem => {
-        const { apiId, func } = apiItem,
-          addResult = this.addApi({
-            apiId,
-            func,
-            modId
-          });
-        if (addResult !== true) {
-          success = false;
+        try {
+          const { apiId, func } = apiItem,
+            addResult = this.addApi({
+              apiId,
+              func,
+              modId
+            });
+          if (addResult !== true) {
+            success = false;
+          }
+        } catch (error) {
+          $console.error(error);
         }
       });
       return success;
@@ -789,10 +840,10 @@ class ApiManager {
       try {
         func({ data, callback });
       } catch (error) {
-        $console.error(error);
+        $.error(error);
       }
     } else {
-      $console.error({ _: "runApi", apiId, data, callback });
+      $.error({ _: "runApi", apiId, data, callback });
       callback(undefined);
     }
   }
@@ -800,6 +851,7 @@ class ApiManager {
 module.exports = {
   CORE_VERSION: VERSION,
   VERSION,
+  ApiManager,
   AppKernel,
   Core: ModCore,
   CoreLoader: ModLoader,
