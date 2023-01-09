@@ -150,7 +150,7 @@ class Http {
     });
     return paramsStr;
   }
-  async post({ url, header, timeout, body, params }) {
+  async post({ url, header, body, params }) {
     return await $http.post({
       url: this.concatUrlParams(url, params),
       header,
@@ -162,6 +162,7 @@ class Http {
     $http.post({
       url: this.concatUrlParams(url, params),
       header,
+      body,
       timeout: this.TIMEOUT,
       handler
     });
