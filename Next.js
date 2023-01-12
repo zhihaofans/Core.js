@@ -302,6 +302,29 @@ class ListView {
       ]
     });
   }
+  renderSimpleText(title, textList, didSelect = index => {}) {
+    $ui.render({
+      props: {
+        title
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            autoRowHeight: this.AUTO_ROW_HEIGHT,
+            estimatedRowHeight: this.ESTIMATED_ROW_HEIGHT,
+            data: textList
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              didSelect(indexPath.row);
+            }
+          }
+        }
+      ]
+    });
+  }
   renderSimpleList(title, listData, defaultFunc) {
     $ui.render({
       props: {
