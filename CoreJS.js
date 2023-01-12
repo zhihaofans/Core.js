@@ -186,10 +186,11 @@ class ModLoader {
       ALLOW_API,
       ALLOW_CONTEXT,
       ALLOW_KEYBOARD,
-      ALLOW_WIDGET
+      ALLOW_WIDGET,
+      API_LIST
     } = modCore.MOD_INFO;
     if (
-      ALLOW_API ||
+      (ALLOW_API && API_LIST) ||
       ALLOW_CONTEXT ||
       ALLOW_KEYBOARD ||
       ALLOW_WIDGET ||
@@ -226,7 +227,7 @@ class ModLoader {
             if (addApiResult !== true) {
               $.error({
                 modId: modCore.MOD_INFO.ID,
-                apiList: modCore.MOD_INFO.API_LIST,
+                apiList: API_LIST,
                 addApiResult
               });
             }
@@ -835,12 +836,16 @@ class ApiManager {
   }
   runApi({ apiId, data, callback }) {
     if (Object.keys(this.API_LIST).includes(apiId)) {
-      const { data, func } = this.API_LIST[apiId];
-
       try {
-        func({ data, callback });
+        this.API_LIST[apiId].func({ data, callback });
       } catch (error) {
-        $.error(error);
+        $.error({
+          _: "runApi",
+          apiId,
+          data,
+          callback,
+          error
+        });
       }
     } else {
       $.error({ _: "runApi", apiId, data, callback });
