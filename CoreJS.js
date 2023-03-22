@@ -656,8 +656,20 @@ class ModModuleLoader {
     try {
       const moduleFile = require(modulePath),
         thisModule = new moduleFile(this.Mod);
+      if (this.ModuleList[thisModule.MODULE_ID] !== undefined) {
+        $.error({
+          name: "core.module.ModuleLoader.addModule",
+          message: "重复添加Module",
+          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          CORE_ID: thisModule.MOD_ID,
+          MOD_ID: this.Mod.MOD_INFO.ID,
+          MODULE_ID: thisModule.MODULE_ID,
+          MODULE_NAME: thisModule.MODULE_NAME
+        });
+        return false;
+      }
       if (this.Mod.MOD_INFO.ID != thisModule.MOD_ID) {
-        $console.error({
+        $.error({
           name: "core.module.ModuleLoader.addModule",
           message: "CORE_ID错误",
           MOD_NAME: this.Mod.MOD_INFO.NAME,
@@ -680,7 +692,7 @@ class ModModuleLoader {
       );
       return true;
     } catch (error) {
-      $console.error({
+      $.error({
         id: "core.module.ModuleLoader.addModule.try",
         fileName,
         MOD_NAME: this.Mod.MOD_INFO.NAME,
@@ -828,7 +840,7 @@ class ApiManager {
             success = false;
           }
         } catch (error) {
-          $console.error(error);
+          $.error(error);
         }
       });
       return success;
