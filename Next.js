@@ -127,6 +127,13 @@ class Http {
       handler
     });
   }
+  getThen({ url, header, params }) {
+    return $http.get({
+      url: this.concatUrlParams(url, params),
+      header,
+      timeout: this.TIMEOUT
+    });
+  }
   async head({ url, header, params }) {
     return await $http.request({
       method: "HEAD",
@@ -165,6 +172,14 @@ class Http {
       body,
       timeout: this.TIMEOUT,
       handler
+    });
+  }
+  postThen({ url, header, body, params }) {
+    return $http.post({
+      url: this.concatUrlParams(url, params),
+      header,
+      timeout: this.TIMEOUT,
+      body
     });
   }
 }
