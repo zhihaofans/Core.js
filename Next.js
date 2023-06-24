@@ -82,6 +82,56 @@ class DateTime {
     return this.DATE_TIME.getTime();
   }
 }
+class GridView {
+  constructor() {}
+  showWaterfallImages({ id, title, imageList, columns = 2 }) {
+    $ui.push({
+      props: {
+        id,
+        title
+      },
+      views: [
+        {
+          type: "matrix",
+          props: {
+            columns: columns || 2,
+            itemHeight: 88,
+            spacing: 5,
+            //加上会崩溃
+            //            autoItemSize: true,
+            //            estimatedItemSize: $size(120, 0),
+            waterfall: true,
+            template: {
+              props: {},
+              views: [
+                {
+                  type: "image",
+                  id: "image",
+                  props: {
+                    src:
+                      "https://images.apple.com/v/ios/what-is/b/images/performance_large.jpg"
+                  },
+                  layout: function (make, view) {
+                    make.center.equalTo(view.super);
+                    make.size.equalTo($size(100, 100));
+                  }
+                }
+              ]
+            },
+            data: imageList.map(img => {
+              return {
+                image: {
+                  src: img
+                }
+              };
+            })
+          },
+          layout: $layout.fill
+        }
+      ]
+    });
+  }
+}
 class Http {
   constructor(timeout) {
     this.TIMEOUT = timeout || 5;
@@ -818,6 +868,7 @@ class VariableKit {
 module.exports = {
   VERSION,
   DateTime,
+  GridView,
   Http,
   ListView,
   Object: ObjectKit,
