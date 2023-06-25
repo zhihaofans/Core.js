@@ -124,14 +124,14 @@ class ModCore {
       KEYCHAIN_DOMAIN: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_NEW: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
-      USE_SQLITE: useSqlite == true,
-      NEED_UPDATE: coreVersion != VERSION,
-      ALLOW_API: allowApi == true,
-      ALLOW_CONTEXT: allowContext == true,
-      ALLOW_KEYBOARD: allowKeyboard == true,
-      ALLOW_WIDGET: allowWidget == true,
+      USE_SQLITE: useSqlite === true,
+      NEED_UPDATE: coreVersion !== VERSION,
+      ALLOW_API: allowApi === true,
+      ALLOW_CONTEXT: allowContext === true,
+      ALLOW_KEYBOARD: allowKeyboard === true,
+      ALLOW_WIDGET: allowWidget === true,
       ALLOW_WIDGET_SIZE:
-        allowWidget == true
+        allowWidget === true
           ? allowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
           : undefined,
       API_LIST: apiList
@@ -178,6 +178,45 @@ class ModLoader {
     this.ApiManager = new ApiManager(this);
     if ($.isArray(modList)) {
       this.addModsByList(modList);
+    }
+  }
+  addModNew(modCore) {
+    if (this.MOD_LIST_LOAD_FINISH === true) return;
+    const {
+      ALLOW_API,
+      ALLOW_CONTEXT,
+      ALLOW_KEYBOARD,
+      ALLOW_WIDGET,
+      API_LIST,
+      ID,
+      NAME,
+      AUTHOR,
+      CORE_VERSION
+    } = modCore.MOD_INFO;
+    if (
+      $.hasString(ID) &&
+      $.hasString(NAME) &&
+      $.hasString(AUTHOR) &&
+      CORE_VERSION >= 0
+    ) {
+      //是否存在mod信息
+      if (!this.hasMod(ID)) {
+        //判断是否已加该mod
+        modCore.ApiManager = this.ApiManager;
+        this.MOD_LIST.id.push(ID);
+        this.MOD_LIST.mods[ID] = modCore;
+        if (CORE_VERSION >= 12 && ALLOW_API === true) {
+          $console.info({
+            addApiList: this.ApiManager.addApiList(ID, API_LIST),
+            ID,
+            API_LIST
+          });
+        }
+      } else {
+        $.error(`hasMod(${ID})`);
+      }
+    } else {
+      $.error("ID,NAME,AUTHOR,CORE_VERSION error");
     }
   }
   addMod(modCore) {
@@ -247,7 +286,7 @@ class ModLoader {
       fileNameList.map(fileName => {
         try {
           const thisMod = require(this.MOD_DIR + fileName);
-          this.addMod(new thisMod(this.App));
+          this.addModNew(new thisMod(this.App));
         } catch (error) {
           $.error({
             message: error.message,
@@ -783,7 +822,13 @@ class ApiManager {
     this.API_LIST = {};
   }
   addApi({ apiId, modId, func }) {
-    if (apiId == undefined || modId == undefined) {
+    $console.info({
+      _: "addApi",
+      apiId,
+      modId,
+      func
+    });
+    if (apiId === undefined || modId === undefined) {
       $.error({
         apiId,
         func,
@@ -807,7 +852,7 @@ class ApiManager {
         msg: "未注册mod"
       });
       return false;
-    } else if (!this.ModLoader.getMod(modId).MOD_INFO.ALLOW_API) {
+    } else if (this.ModLoader.getMod(modId)?.MOD_INFO.ALLOW_API !== true) {
       $.error({
         apiId,
         func,
@@ -824,7 +869,7 @@ class ApiManager {
     }
   }
   addApiList(modId, apiList) {
-    if (modId == undefined || apiList == undefined || apiList.length == 0) {
+    if (modId === undefined || apiList === undefined || apiList.length === 0) {
       return false;
     } else {
       let success = true;
@@ -847,22 +892,38 @@ class ApiManager {
     }
   }
   runApi({ apiId, data, callback }) {
-    if (Object.keys(this.API_LIST).includes(apiId)) {
-      try {
-        this.API_LIST[apiId].func({ data, callback });
-      } catch (error) {
+    return new Promise((resolve, reject) => {
+      if (Object.keys(this.API_LIST).includes(apiId)) {
+        try {
+          this.API_LIST[apiId].func({
+            data,
+            callback: callback ? callback : resolve
+          });
+        } catch (error) {
+          $.error({
+            _: "runApi",
+            apiId,
+            data,
+            callback,
+            error
+          });
+          reject({ apiId, data, message: error.message });
+        }
+      } else {
         $.error({
           _: "runApi",
           apiId,
           data,
           callback,
-          error
+          message: "未注册该apiid"
+        });
+        reject({
+          apiId,
+          data,
+          message: "未注册该apiid"
         });
       }
-    } else {
-      $.error({ _: "runApi", apiId, data, callback });
-      callback(undefined);
-    }
+    });
   }
 }
 module.exports = {
