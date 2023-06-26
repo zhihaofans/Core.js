@@ -280,6 +280,15 @@ class StringKit {
     return false;
   }
 }
+function toast(success, successText, errorText) {
+  success === true ? $ui.success(successText) : $ui.error(errorText);
+}
+function startLoading() {
+  $ui.loading(true);
+}
+function stopLoading() {
+  $ui.loading(false);
+}
 module.exports = {
   VERSION,
   alert: new Alert(),
@@ -308,7 +317,10 @@ module.exports = {
   isWidgetEnv: new JSBoxKit().isWidgetEnv,
   jsboxKit: new JSBoxKit(),
   share: new Share(),
+  startLoading,
+  stopLoading,
   string: new StringKit(),
+  toast,
   toInt: new NumberKit().toInt,
   urlEncode: $text.URLEncode,
   urlDecode: $text.URLDecode,
