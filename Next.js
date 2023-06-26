@@ -84,7 +84,13 @@ class DateTime {
 }
 class GridView {
   constructor() {}
-  showWaterfallImages({ id, title, imageList, columns = 2 }) {
+  showWaterfallImages({
+    id,
+    title,
+    imageList,
+    columns = 2,
+    onClick = (index, url) => {}
+  }) {
     $ui.push({
       props: {
         id,
@@ -124,9 +130,34 @@ class GridView {
                   src: img
                 }
               };
-            })
+            }),
+            header: {
+              type: "label",
+              props: {
+                height: 20,
+                text: `${imageList.length}张图片`,
+                textColor: $color("#AAAAAA"),
+                align: $align.center,
+                font: $font(12)
+              }
+            },
+            footer: {
+              type: "label",
+              props: {
+                height: 20,
+                text: `网络不好时可能加载不出来`,
+                textColor: $color("#AAAAAA"),
+                align: $align.center,
+                font: $font(12)
+              }
+            }
           },
-          layout: $layout.fill
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              onClick(indexPath.row, data.image.src);
+            }
+          }
         }
       ]
     });
