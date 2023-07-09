@@ -1,6 +1,6 @@
-const VERSION = 12,
+const VERSION = 13,
   $ = require("$"),
-  { Storage } = require("Next"),
+  { Storage, UiKit } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
 class AppKernel {
   constructor({ appId, modDir, modList, l10nPath }) {
@@ -26,6 +26,7 @@ class AppKernel {
       $.info(`debug:${this.DEBUG}`);
     }
     this.ModLoader = new ModLoader({ modDir, app: this, modList });
+    this.GlobalStorage = new GlobalStorage();
   }
   l10n(l10nPath) {
     if ($.file.isFileExist(l10nPath)) {
@@ -102,6 +103,9 @@ class ModCore {
     app,
     modId,
     modName,
+    icon,
+    iconData,
+    iconName,
     version,
     author,
     coreVersion,
@@ -117,6 +121,9 @@ class ModCore {
     this.MOD_INFO = {
       ID: modId,
       NAME: modName,
+      ICON: icon,
+      ICON_DATA: iconData,
+      ICON_NAME: iconName,
       VERSION: version,
       AUTHOR: author,
       CORE_VERSION: coreVersion,
@@ -180,7 +187,7 @@ class ModLoader {
       this.addModsByList(modList);
     }
   }
-  addModNew(modCore) {
+  addMod(modCore) {
     if (this.MOD_LIST_LOAD_FINISH === true) return;
     const {
       ALLOW_API,
@@ -197,7 +204,7 @@ class ModLoader {
       $.hasString(ID) &&
       $.hasString(NAME) &&
       $.hasString(AUTHOR) &&
-      CORE_VERSION >= 0
+      CORE_VERSION > 0
     ) {
       //是否存在mod信息
       if (!this.hasMod(ID)) {
@@ -219,74 +226,12 @@ class ModLoader {
       $.error("ID,NAME,AUTHOR,CORE_VERSION error");
     }
   }
-  addMod(modCore) {
-    if (this.MOD_LIST_LOAD_FINISH === true) return;
-    const {
-      ALLOW_API,
-      ALLOW_CONTEXT,
-      ALLOW_KEYBOARD,
-      ALLOW_WIDGET,
-      API_LIST
-    } = modCore.MOD_INFO;
-    if (
-      (ALLOW_API && API_LIST) ||
-      ALLOW_CONTEXT ||
-      ALLOW_KEYBOARD ||
-      ALLOW_WIDGET ||
-      $.isFunction(modCore.run) ||
-      $.isFunction(modCore.runWidget) ||
-      $.isFunction(modCore.runContext) ||
-      $.isFunction(modCore.runKeyboard) ||
-      $.isFunction(modCore.runApi)
-    ) {
-      if (
-        modCore.MOD_INFO.ID.length > 0 &&
-        modCore.MOD_INFO.NAME.length > 0 &&
-        modCore.MOD_INFO.AUTHOR.length > 0
-      ) {
-        const modId = modCore.MOD_INFO.ID;
-        if (
-          !this.MOD_LIST.id.includes(modId) &&
-          this.MOD_LIST.mods[modId] == undefined
-        ) {
-          if (modCore.MOD_INFO.CORE_VERSION >= 12) {
-            modCore.ApiManager = this.ApiManager;
-          }
-          this.MOD_LIST.id.push(modId);
-          this.MOD_LIST.mods[modId] = modCore;
-          if (
-            modCore.MOD_INFO.CORE_VERSION >= 12 &&
-            modCore.MOD_INFO.ALLOW_API &&
-            modCore.MOD_INFO.API_LIST !== undefined
-          ) {
-            const addApiResult = this.ApiManager.addApiList(
-              modCore.MOD_INFO.ID,
-              modCore.MOD_INFO.API_LIST
-            );
-            if (addApiResult !== true) {
-              $.error({
-                modId: modCore.MOD_INFO.ID,
-                apiList: API_LIST,
-                addApiResult
-              });
-            }
-          }
-        } else {
-          $.error(`modId(${modId})已存在`);
-        }
-      } else {
-        $.error(3);
-      }
-    } else {
-      $.error(4);
-    }
-  }
   addModsByList(fileNameList) {
     if (this.MOD_LIST_LOAD_FINISH != true) {
       fileNameList.map(fileName => {
         try {
           const thisMod = require(this.MOD_DIR + fileName);
-          this.addModNew(new thisMod(this.App));
+          this.addMod(new thisMod(this.App));
         } catch (error) {
           $.error({
             message: error.message,
@@ -569,80 +514,32 @@ class ModLoader {
   }
   showGridModList() {
     const modList = this.getModList();
-    $ui.render({
-      props: {
-        title: this.App.AppInfo.name
-      },
-      views: [
-        {
-          type: "matrix",
-          props: {
-            columns: 3,
-            waterfall: true,
-            itemHeight: 50,
-            spacing: 2,
-            template: {
-              props: {},
-              views: [
-                {
-                  type: "stack",
-                  props: {
-                    axis: $stackViewAxis.vertical,
-                    spacing: 5,
-                    distribution: $stackViewDistribution.fillProportionally,
-                    stack: {
-                      views: [
-                        {
-                          type: "image",
-                          props: {
-                            id: "image"
-                          },
-                          layout: (make, view) => {
-                            make.center.equalTo(view.super);
-                            make.size.equalTo($size(50, 50));
-                          }
-                        },
-                        {
-                          type: "label",
-                          props: {
-                            id: "name",
-
-                            align: $align.left,
-                            font: $font(12)
-                          },
-                          layout: make => {
-                            make.height.equalTo(20);
-                            make.left.top.right.inset(0);
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  layout: $layout.fill
-                }
-              ]
-            },
-            data: modList.id.map(modId => {
-              const mod = modList.mods[modId];
-              return {
-                image: {
-                  icon: mod.MOD_INFO.ICON,
-                  image: mod.MOD_INFO.IMAGE
-                },
-                name: {
-                  text: mod.MOD_INFO.NAME
-                }
-              };
-            })
-          },
-          layout: $layout.fill,
-          events: {
-            didSelect: (sender, indexPath, data) => {
-              this.runMod(modList.id[indexPath.row]);
-            }
-          }
-        }
-      ]
+    const itemList = modList.id.map(modId => {
+      const modInfo = modList.mods[modId].MOD_INFO;
+      const modData = {
+        title: modInfo.NAME
+      };
+      if (modInfo.ICON_DATA) {
+        modData.data = modInfo.ICON_DATA;
+      } else if (modInfo.ICON_NAME) {
+        modData.icon = modInfo.ICON_NAME;
+      } else if (modInfo.ICON) {
+        modData.src = modInfo.ICON;
+      } else {
+        modData.src = `https://api.setbug.com/tools/text2image/?font_name=wryh&text=${$text
+          .convertToPinYin(modInfo.NAME)
+          .toUpperCase()
+          .substring(0, 1)}`;
+      }
+      return modData;
+    });
+    $console.info(itemList);
+    new UiKit().showGridList({
+      title: this.App.AppInfo.name,
+      itemList,
+      callback: (idx, data) => {
+        this.runMod(modList.id[idx]);
+      }
     });
   }
 }
@@ -814,6 +711,16 @@ class WidgetLoader {
 class GlobalStorage {
   constructor(app) {
     this.App = app;
+    this._DATA_ = {};
+  }
+  get(key) {
+    return this._DATA_[key];
+  }
+  set(key, value) {
+    this._DATA_[key] = value;
+  }
+  remove(key) {
+    this._DATA_[key] = undefined;
   }
 }
 class ApiManager {
