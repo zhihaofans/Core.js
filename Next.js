@@ -1,4 +1,4 @@
-const VERSION = 1;
+const VERSION = 2;
 class DateTime {
   constructor(mode) {
     this.DATE_TIME = new Date(); //pickDateTime后可修改
@@ -857,6 +857,90 @@ class UiKit {
         });
         break;
     }
+  }
+  showGridList({
+    itemList,
+    title,
+    columns,
+    itemHeight,
+    spacing,
+    callback = (idx, data) => {}
+  }) {
+    const viewData = {
+      type: "matrix",
+      props: {
+        id: "tab",
+        columns: columns || 3,
+        itemHeight: itemHeight || 90,
+        spacing: spacing || 5,
+        scrollEnabled: false,
+        template: [
+          {
+            type: "view",
+            layout: (make, view) => {
+              make.size.equalTo(view.super);
+              make.center.equalTo(view.super);
+            },
+            views: [
+              {
+                type: "image",
+                props: {
+                  id: "menu_image",
+                  resizable: true,
+                  clipsToBounds: false
+                },
+                layout: (make, view) => {
+                  make.centerX.equalTo(view.super);
+                  make.size.equalTo($size(50, 50));
+                  make.top.inset(6);
+                }
+              },
+              {
+                type: "label",
+                props: {
+                  id: "menu_label",
+                  font: $font(10)
+                },
+                layout: (make, view) => {
+                  var preView = view.prev;
+                  make.centerX.equalTo(preView);
+                  make.bottom.inset(5);
+                }
+              }
+            ]
+          }
+        ],
+        data: itemList.map(item => {
+          return {
+            menu_image: {
+              symbol: item.icon,
+              src: item.src,
+              data: item.data,
+              tintColor: $color("gray")
+            },
+            menu_label: {
+              text: item.title,
+              textColor: $color("gray")
+            }
+          };
+        })
+      },
+      layout: $layout.fill,
+      events: {
+        didSelect(sender, indexPath, data) {
+          callback ? callback(indexPath.row, data) : undefined;
+        }
+      }
+    };
+    this.showView({
+      props: {
+        title
+      },
+      views: [viewData]
+    });
+  }
+  showView(viewData) {
+    $ui.window === undefined ? $ui.render(viewData) : $ui.push(viewData);
   }
 }
 class UrlKit {
