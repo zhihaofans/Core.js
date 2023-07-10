@@ -517,7 +517,7 @@ class ModLoader {
     const itemList = modList.id.map(modId => {
       const modInfo = modList.mods[modId].MOD_INFO;
       const modData = {
-        title: modInfo.NAME
+        title: modInfo.NEED_UPDATE ? `${modInfo.NAME}(New)` : modInfo.NAME
       };
       if (modInfo.ICON_DATA) {
         modData.data = modInfo.ICON_DATA;
