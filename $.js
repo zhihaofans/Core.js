@@ -19,7 +19,6 @@ function isFunction(func) {
 function warn(message) {
   $console.warn(message);
 }
-
 class Alert {
   constructor() {}
   show(title, message) {
@@ -29,23 +28,19 @@ class Alert {
     });
   }
 }
-class ArrayKit {
-  constructor() {}
-  getLastItem(array) {
-    if (this.hasArray(array)) {
-      return array[array.length - 1];
-    } else {
-      return undefined;
-    }
-  }
-  hasArray(data) {
-    return Array.isArray(data) && data.length > 0;
-  }
-  isArray(data) {
-    return Array.isArray(data);
+function getArrayLastItem(array) {
+  if (this.hasArray(array)) {
+    return array[array.length - 1];
+  } else {
+    return undefined;
   }
 }
-
+function hasArray(data) {
+  return Array.isArray(data) && data.length > 0;
+}
+function isArray(data) {
+  return Array.isArray(data);
+}
 class Datetime {
   constructor() {}
   getUnixTime() {
@@ -260,26 +255,24 @@ class Share {
   }
 }
 
-class StringKit {
-  constructor() {}
-  hasString(string) {
-    return this.isString(string) && string.length > 0;
-  }
-  isString(string) {
-    return typeof string === "string";
-  }
-  startsWithList(string, list) {
-    if (this.hasString(string) || !new ArrayKit().isArray(list)) {
-      return false;
-    }
-    list.map(item => {
-      if (string.startsWith(item)) {
-        return true;
-      }
-    });
+function hasString(string) {
+  return isString(string) && string.length > 0;
+}
+function isString(string) {
+  return typeof string === "string";
+}
+function startsWithList(string, list) {
+  if (hasString(string) || !isArray(list)) {
     return false;
   }
+  list.map(item => {
+    if (string.startsWith(item)) {
+      return true;
+    }
+  });
+  return false;
 }
+
 function toast(success, successText, errorText) {
   success === true ? $ui.success(successText) : $ui.error(errorText);
 }
@@ -289,37 +282,47 @@ function startLoading() {
 function stopLoading() {
   $ui.loading(false);
 }
+function quicklookUrl(url) {
+  return new Promise((resolve, reject) => {
+    $quicklook.open({
+      url,
+      handler: resolve
+    });
+  });
+}
 module.exports = {
   VERSION,
   alert: new Alert(),
-  array: new ArrayKit(),
   base64Encode: $text.base64Encode,
   base64Decode: $text.base64Decode,
   dateTime: new Datetime(),
   debug,
   error,
   file: new File(),
+  getArrayLastItem,
   getUUID,
-  hasString: new StringKit().hasString,
+  hasString,
+  hasArray,
   http: new Http(),
   icon: new Icon(),
   info,
   isActionEnv: new JSBoxKit().isActionEnv,
   isAppEnv: new JSBoxKit().isAppEnv,
-  isArray: new ArrayKit().isArray,
+  isArray,
   isContext: new JSBoxKit().isContextEnv,
   isDebug: $app.isDebugging == true,
   isFunction,
   isKeyboardEnv: new JSBoxKit().isKeyboardEnv,
   isNumber: new NumberKit().isNumber,
   isSafariEnv: new JSBoxKit().isSafariEnv,
-  isString: new StringKit().isString,
+  isString,
   isWidgetEnv: new JSBoxKit().isWidgetEnv,
   jsboxKit: new JSBoxKit(),
+  quicklookUrl,
   share: new Share(),
   startLoading,
+  startsWithList,
   stopLoading,
-  string: new StringKit(),
   toast,
   toInt: new NumberKit().toInt,
   urlEncode: $text.URLEncode,
