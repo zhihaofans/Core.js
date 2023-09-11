@@ -1,12 +1,36 @@
 const APP_KERNEL_VERSION = 1;
+let APP_MODE = false;
+const timeoutId = setTimeout(() => {
+  if (APP_MODE !== true) {
+    $console.info("app mode", APP_MODE);
+    $ui.alert({
+      title: "发生错误",
+      message: "请在App里调用",
+      actions: [
+        {
+          title: "退出",
+          disabled: false, // Optional
+          handler: () => {
+            $app.close();
+          }
+        }
+      ]
+    });
+  }
+}, 2000);
 class AppKernel {
-  constructor({ appId, appName, author }) {
-    this.DEBUG = $app.isDebugging;
+  constructor({ appId, appName, author, debug }) {
+    APP_MODE = true;
+    clearTimeout(timeoutId);
+    this.DEBUG = debug === true; //$app.isDebugging;
     this.AppInfo = {
       id: appId,
       name: appName,
       author
     };
+    if (this.DEBUG) {
+      $console.info("AppKernel.init", this.AppInfo);
+    }
   }
 }
 class AppUtil {
