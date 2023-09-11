@@ -805,9 +805,12 @@ class SQLite {
     }
   }
   getError(sqlResult) {
-    const isError =
-      sqlResult.result == undefined || sqlResult.error != undefined;
+    $console.info({
+      getError: sqlResult
+    });
+    const isError = sqlResult.result !== true || sqlResult.error !== undefined;
     return {
+      success: !isError,
       error: isError,
       code: isError ? sqlResult.error.code : undefined,
       message: isError ? sqlResult.error.localizedDescription : "success"
