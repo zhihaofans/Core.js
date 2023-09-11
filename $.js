@@ -79,6 +79,20 @@ class Datetime {
       milliseconds || 0
     );
   }
+  autoAddZero(number) {
+    const str = new String(number),
+      num = new Number(number);
+    return num >= 10 ? str : `0${str}`;
+  }
+  timestampToTimeStr(timestamp) {
+    const time = new Date(timestamp),
+      month = this.autoAddZero(time.getMonth() + 1),
+      day = this.autoAddZero(time.getDate()),
+      hours = this.autoAddZero(time.getHours()),
+      minutes = this.autoAddZero(time.getMinutes()),
+      seconds = this.autoAddZero(time.getSeconds());
+    return `${time.getFullYear()}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
   async pickDate() {
     return await $picker.date({ props: { mode: 1 } });
   }
@@ -290,17 +304,30 @@ function quicklookUrl(url) {
     });
   });
 }
+function copy(text) {
+  return new Promise((resolve, reject) => {
+    $clipboard.text = text;
+    resolve(text);
+  });
+}
+function paste() {
+  return $clipboard.text;
+}
+const dateTime = new Datetime();
 module.exports = {
   VERSION,
   alert: new Alert(),
   base64Encode: $text.base64Encode,
   base64Decode: $text.base64Decode,
-  dateTime: new Datetime(),
+  copy,
+  dateTime,
   debug,
   error,
   file: new File(),
   getArrayLastItem,
   getUUID,
+  getUnixTime: dateTime.getUnixTime,
+  getTimestamp: dateTime.getUnixTime,
   hasString,
   hasArray,
   http: new Http(),
@@ -318,11 +345,13 @@ module.exports = {
   isString,
   isWidgetEnv: new JSBoxKit().isWidgetEnv,
   jsboxKit: new JSBoxKit(),
+  paste,
   quicklookUrl,
   share: new Share(),
   startLoading,
   startsWithList,
   stopLoading,
+  timestampToTimeStr: dateTime.timestampToTimeStr,
   toast,
   toInt: new NumberKit().toInt,
   urlEncode: $text.URLEncode,
