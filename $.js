@@ -148,7 +148,7 @@ class File {
     var nextPath = "";
     pathLevelsList.map(path => {
       nextPath += path + "/";
-      $file.mkdir(nextPath);
+      $console.info(nextPath, $file.mkdir(nextPath));
     });
   }
 }
@@ -313,6 +313,16 @@ function copy(text) {
 function paste() {
   return $clipboard.text;
 }
+function showView(viewData) {
+  $ui.window === undefined ? $ui.render(viewData) : $ui.push(viewData);
+}
+function getLinks(text) {
+  return $detector.link(text) || [];
+}
+function isLink(text) {
+  const links = getLinks(text);
+  return links.length == 1 && text === links[0];
+}
 const dateTime = new Datetime();
 module.exports = {
   VERSION,
@@ -325,6 +335,7 @@ module.exports = {
   error,
   file: new File(),
   getArrayLastItem,
+  getLinks,
   getUUID,
   getUnixTime: dateTime.getUnixTime,
   getTimestamp: dateTime.getUnixTime,
@@ -340,6 +351,7 @@ module.exports = {
   isDebug: $app.isDebugging == true,
   isFunction,
   isKeyboardEnv: new JSBoxKit().isKeyboardEnv,
+  isLink,
   isNumber: new NumberKit().isNumber,
   isSafariEnv: new JSBoxKit().isSafariEnv,
   isString,
@@ -348,6 +360,7 @@ module.exports = {
   paste,
   quicklookUrl,
   share: new Share(),
+  showView,
   startLoading,
   startsWithList,
   stopLoading,
