@@ -34,7 +34,9 @@ class AppKernel {
   }
 }
 class AppUtil {
-  constructor() {}
+  constructor() {
+    APP_MODE = true;
+  }
   isAppEnv() {
     return $app.env == $env.app;
   }
@@ -56,6 +58,7 @@ class AppUtil {
 }
 class GlobalStorage {
   constructor(globalId) {
+    APP_MODE = true;
     this.GLOBAL_ID = globalId;
   }
   getKeychain(key) {
