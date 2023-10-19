@@ -1,42 +1,17 @@
 const APP_KERNEL_VERSION = 1;
-let APP_MODE = false;
-const timeoutId = setTimeout(() => {
-  if (APP_MODE !== true) {
-    $console.info("app mode", APP_MODE);
-    $ui.alert({
-      title: "发生错误",
-      message: "请在App里调用",
-      actions: [
-        {
-          title: "退出",
-          disabled: false, // Optional
-          handler: () => {
-            $app.close();
-          }
-        }
-      ]
-    });
-  }
-}, 2000);
 class AppKernel {
-  constructor({ appId, appName, author, debug }) {
-    APP_MODE = true;
-    clearTimeout(timeoutId);
+  constructor({ appId, debug }) {
     this.DEBUG = debug === true; //$app.isDebugging;
-    this.AppInfo = {
-      id: appId,
-      name: appName,
-      author
-    };
+    this.AppConfig = JSON.parse($file.read("/config.json"));
+    this.AppInfo = this.AppConfig.info;
+    this.AppInfo.id = appId;
     if (this.DEBUG) {
       $console.info("AppKernel.init", this.AppInfo);
     }
   }
 }
 class AppUtil {
-  constructor() {
-    APP_MODE = true;
-  }
+  constructor() {}
   isAppEnv() {
     return $app.env == $env.app;
   }
@@ -58,7 +33,6 @@ class AppUtil {
 }
 class GlobalStorage {
   constructor(globalId) {
-    APP_MODE = true;
     this.GLOBAL_ID = globalId;
   }
   getKeychain(key) {
