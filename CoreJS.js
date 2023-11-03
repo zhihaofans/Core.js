@@ -229,12 +229,20 @@ class ModLoader {
   addModsByList(fileNameList) {
     if (this.MOD_LIST_LOAD_FINISH != true) {
       fileNameList.map(fileName => {
-        try {
-          const thisMod = require(this.MOD_DIR + fileName);
-          this.addMod(new thisMod(this.App));
-        } catch (error) {
+        if ($.hasString(fileName)) {
+          try {
+            const thisMod = require(this.MOD_DIR + fileName);
+            this.addMod(new thisMod(this.App));
+          } catch (error) {
+            $.error({
+              message: error.message,
+              fileName,
+              name: "ModLoader.addModsByList"
+            });
+          }
+        } else {
           $.error({
-            message: error.message,
+            message: "fileName is empty",
             fileName,
             name: "ModLoader.addModsByList"
           });
@@ -628,7 +636,9 @@ class ModModuleLoader {
       );
       return true;
     } catch (error) {
+      $.error(error);
       $.error({
+        line: 633,
         id: "core.module.ModuleLoader.addModule.try",
         fileName,
         MOD_NAME: this.Mod.MOD_INFO.NAME,
