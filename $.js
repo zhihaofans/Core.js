@@ -1,21 +1,27 @@
-const VERSION = 1;
+const VERSION = 2;
+
 function debug(message) {
   if ($app.isDebugging == true) {
     info(message);
   }
 }
+
 function error(message) {
   $console.error(message);
 }
+
 function getUUID() {
   return $text.uuid;
 }
+
 function info(message) {
   $console.info(message);
 }
+
 function isFunction(func) {
   return func != undefined && typeof func == "function";
 }
+
 function warn(message) {
   $console.warn(message);
 }
@@ -28,6 +34,7 @@ class Alert {
     });
   }
 }
+
 function getArrayLastItem(array) {
   if (this.hasArray(array)) {
     return array[array.length - 1];
@@ -35,9 +42,11 @@ function getArrayLastItem(array) {
     return undefined;
   }
 }
+
 function hasArray(data) {
   return Array.isArray(data) && data.length > 0;
 }
+
 function isArray(data) {
   return Array.isArray(data);
 }
@@ -103,54 +112,56 @@ class Datetime {
     return await $picker.date({ props: { mode: 2 } });
   }
 }
-class File {
-  constructor() {}
-  isFile(filePath) {
-    return !$file.isDirectory(filePath);
+
+function isFile(filePath) {
+  return !$file.isDirectory(filePath);
+}
+
+function isFileExist(filePath) {
+  return $file.exists(filePath) && !$file.isDirectory(filePath);
+}
+
+function getPathLevelsList(path) {
+  var newPath = path;
+  if (path.endsWith("/")) {
+    newPath = path.substring(0, path.length - 1);
   }
-  isFileExist(filePath) {
-    return $file.exists(filePath) && !$file.isDirectory(filePath);
-  }
-  getPathLevelsList(path) {
-    var newPath = path;
-    if (path.endsWith("/")) {
-      newPath = path.substring(0, path.length - 1);
+  if (newPath.startsWith("shared://")) {
+    const pathStr = newPath.substring(9, path.length - 1);
+    if (pathStr.indexOf("/") < 0) {
+      return pathStr;
     }
-    if (newPath.startsWith("shared://")) {
-      const pathStr = newPath.substring(9, path.length - 1);
-      if (pathStr.indexOf("/") < 0) {
-        return pathStr;
-      }
-      const levelsList = pathStr.split("/");
-      levelsList[0] = "shared://" + levelsList[0];
-      return levelsList;
-    } else if (newPath.startsWith("drive://")) {
-      const pathStr = newPath.substring(8, newPath.length);
-      if (pathStr.indexOf("/") < 0) {
-        return pathStr;
-      }
-      const levelsList = pathStr.split("/");
-      levelsList[0] = "drive://" + levelsList[0];
-      return levelsList;
-    } else if (newPath.startsWith("/")) {
-      const pathStr = newPath.substring(1, newPath.length),
-        levelsList = pathStr.split("/");
-      levelsList[0] = "/" + levelsList[0];
-      return levelsList;
+    const levelsList = pathStr.split("/");
+    levelsList[0] = "shared://" + levelsList[0];
+    return levelsList;
+  } else if (newPath.startsWith("drive://")) {
+    const pathStr = newPath.substring(8, newPath.length);
+    if (pathStr.indexOf("/") < 0) {
+      return pathStr;
     }
-    return undefined;
+    const levelsList = pathStr.split("/");
+    levelsList[0] = "drive://" + levelsList[0];
+    return levelsList;
+  } else if (newPath.startsWith("/")) {
+    const pathStr = newPath.substring(1, newPath.length),
+      levelsList = pathStr.split("/");
+    levelsList[0] = "/" + levelsList[0];
+    return levelsList;
   }
-  mkdirs(dir) {
-    const pathLevelsList = this.getPathLevelsList(dir);
-    if (pathLevelsList == undefined || pathLevelsList.length == 0) {
-      return false;
-    }
-    var nextPath = "";
-    pathLevelsList.map(path => {
-      nextPath += path + "/";
-      $console.info(nextPath, $file.mkdir(nextPath));
-    });
+  return undefined;
+}
+
+function mkdirs(dir) {
+  const pathLevelsList = getPathLevelsList(dir);
+  if (pathLevelsList == undefined || pathLevelsList.length == 0) {
+    return false;
   }
+  var nextPath = "";
+  pathLevelsList.map(path => {
+    nextPath += path + "/";
+    $console.info(nextPath, $file.mkdir(nextPath));
+  });
+  return $file.exists(dir) && $file.isDirectory(dir);
 }
 class Http {
   constructor() {}
@@ -214,38 +225,6 @@ class Icon {
     );
   }
 }
-class JSBoxKit {
-  constructor() {}
-  isActionEnv() {
-    return $app.env == $env.action;
-  }
-  isAppEnv() {
-    return $app.env == $env.app;
-  }
-  isKeyboardEnv() {
-    return $app.env == $env.keyboard;
-  }
-  isContextEnv() {
-    return $app.env == $env.action;
-  }
-  isSafariEnv() {
-    return $app.env == $env.safari;
-  }
-
-  isWidgetEnv() {
-    return $app.env == $env.widget;
-  }
-}
-
-class NumberKit {
-  constructor() {}
-  toInt(data) {
-    return Number.parseInt(data);
-  }
-  isNumber(data) {
-    return typeof data === "number";
-  }
-}
 
 class Share {
   constructor() {}
@@ -258,11 +237,11 @@ class Share {
   getLink() {
     if (this.isAction()) {
       return $context.link || undefined;
-    }
-    if (this.isSafari()) {
+    } else if (this.isSafari()) {
       return $context.safari ? $context.safari.items.location.href : undefined;
+    } else {
+      return undefined;
     }
-    return undefined;
   }
   getText() {
     return $context.text;
@@ -272,9 +251,11 @@ class Share {
 function hasString(string) {
   return isString(string) && string.length > 0;
 }
+
 function isString(string) {
   return typeof string === "string";
 }
+
 function startsWithList(string, list) {
   if (hasString(string) || !isArray(list)) {
     return false;
@@ -290,12 +271,15 @@ function startsWithList(string, list) {
 function toast(success, successText, errorText) {
   success === true ? $ui.success(successText) : $ui.error(errorText);
 }
+
 function startLoading() {
   $ui.loading(true);
 }
+
 function stopLoading() {
   $ui.loading(false);
 }
+
 function quicklookUrl(url) {
   return new Promise((resolve, reject) => {
     $quicklook.open({
@@ -304,69 +288,162 @@ function quicklookUrl(url) {
     });
   });
 }
+
 function copy(text) {
   return new Promise((resolve, reject) => {
     $clipboard.text = text;
     resolve(text);
   });
 }
+
 function paste() {
   return $clipboard.text;
 }
+
 function showView(viewData) {
   $ui.window === undefined ? $ui.render(viewData) : $ui.push(viewData);
 }
+
 function getLinks(text) {
   return $detector.link(text) || [];
 }
+
 function isLink(text) {
   const links = getLinks(text);
   return links.length == 1 && text === links[0];
 }
+
+function isEmpty(content) {
+  $console.info({
+    content,
+    type: typeof content
+  });
+  if (content === undefined || content === null) {
+    return true;
+  } else if ((isString(content) || isArray(content)) && content.length === 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function inputText(text, placeholder) {
+  return new Promise((resolve, reject) => {
+    $input.text({
+      type: $kbType.text,
+      placeholder,
+      text,
+      handler: text => {
+        resolve(text);
+      }
+    });
+  });
+}
+
+function booleanToText(_boolean, trueText, falseText) {
+  return _boolean === true ? trueText : falseText;
+}
+
+function toInt(data) {
+  return Number.parseInt(data);
+}
+
+function isNumber(data) {
+  return typeof data === "number";
+}
 const dateTime = new Datetime();
+const share = new Share();
+
+function isActionEnv() {
+  return $app.env == $env.action;
+}
+
+function isAppEnv() {
+  return $app.env == $env.app;
+}
+
+function isKeyboardEnv() {
+  return $app.env == $env.keyboard;
+}
+
+function isContextEnv() {
+  return $app.env == $env.action;
+}
+
+function isSafariEnv() {
+  return $app.env == $env.safari;
+}
+
+function isWidgetEnv() {
+  return $app.env == $env.widget;
+}
 module.exports = {
   VERSION,
   alert: new Alert(),
   base64Encode: $text.base64Encode,
   base64Decode: $text.base64Decode,
+  booleanToText,
   copy,
   dateTime,
   debug,
   error,
-  file: new File(),
+  file: {
+    isFile,
+    isFileExist,
+    mkdirs
+  },
   getArrayLastItem,
   getLinks,
+  getPathLevelsList,
   getUUID,
   getUnixTime: dateTime.getUnixTime,
+  getShareLink: share.getLink,
+  getShareText: share.getText,
   getTimestamp: dateTime.getUnixTime,
   hasString,
   hasArray,
   http: new Http(),
   icon: new Icon(),
   info,
-  isActionEnv: new JSBoxKit().isActionEnv,
-  isAppEnv: new JSBoxKit().isAppEnv,
+  inputText,
+  isActionEnv,
+  isAppEnv,
   isArray,
-  isContext: new JSBoxKit().isContextEnv,
+  isContextEnv,
   isDebug: $app.isDebugging == true,
+  isEmpty,
+  isFile,
+  isFileExist,
   isFunction,
-  isKeyboardEnv: new JSBoxKit().isKeyboardEnv,
+  isKeyboardEnv,
   isLink,
-  isNumber: new NumberKit().isNumber,
-  isSafariEnv: new JSBoxKit().isSafariEnv,
+  isNumber,
+  isSafariEnv,
   isString,
-  isWidgetEnv: new JSBoxKit().isWidgetEnv,
-  jsboxKit: new JSBoxKit(),
+  isWidgetEnv,
+  jsboxKit: {
+    isActionEnv,
+    isAppEnv,
+    isContextEnv,
+    isKeyboardEnv,
+    isSafariEnv,
+    isWidgetEnv
+  },
+  logD: debug,
+  logE: error,
+  logI: info,
+  logW: warn,
+  mkdirs,
   paste,
   quicklookUrl,
-  share: new Share(),
+  share,
   showView,
   startLoading,
   startsWithList,
   stopLoading,
   timestampToTimeStr: dateTime.timestampToTimeStr,
   toast,
-  toInt: new NumberKit().toInt,
+  toInt,
   urlEncode: $text.URLEncode,
   urlDecode: $text.URLDecode,
   warn
