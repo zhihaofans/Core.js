@@ -377,8 +377,14 @@ function isSafariEnv() {
 function isWidgetEnv() {
   return $app.env == $env.widget;
 }
+
+function getMatrixItem(id, idx) {
+  return $ui.get(id).cell(idx);
+}
+
 module.exports = {
   VERSION,
+  $: $ui.get,
   alert: new Alert(),
   base64Encode: $text.base64Encode,
   base64Decode: $text.base64Decode,
@@ -394,6 +400,7 @@ module.exports = {
   },
   getArrayLastItem,
   getLinks,
+  getMatrixItem,
   getPathLevelsList,
   getUUID,
   getUnixTime: dateTime.getUnixTime,
