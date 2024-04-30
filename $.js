@@ -382,6 +382,67 @@ function getMatrixItem(id, idx) {
   return $ui.get(id).cell(idx);
 }
 
+//datetime
+function getUnixTime() {
+  return new Date().getTime();
+}
+function getSecondUnixTime() {
+  return Math.round(new Date().getTime() / 1000);
+}
+function getTodayWhatTimeDate({ hours, minutes, seconds, milliseconds }) {
+  const nowDate = new Date(),
+    todayYear = nowDate.getFullYear(),
+    todayMonth = nowDate.getMonth() + 1,
+    todayDate = nowDate.getDate();
+  return new Date(
+    todayYear,
+    todayMonth - 1,
+    todayDate,
+    hours || 0,
+    minutes || 0,
+    seconds || 0,
+    milliseconds || 0
+  );
+}
+function getTomorrowWhatTimeDate({ hours, minutes, seconds, milliseconds }) {
+  const nowDate = new Date(),
+    todayYear = nowDate.getFullYear(),
+    todayMonth = nowDate.getMonth() + 1,
+    todayDate = nowDate.getDate();
+  return new Date(
+    todayYear,
+    todayMonth - 1,
+    todayDate + 1,
+    hours || 0,
+    minutes || 0,
+    seconds || 0,
+    milliseconds || 0
+  );
+}
+function autoAddZero(number) {
+  const str = new String(number),
+    num = new Number(number);
+  return num >= 10 ? str : `0${str}`;
+}
+function timestampToTimeStr(timestamp) {
+  const time = new Date(timestamp),
+    month = autoAddZero(time.getMonth() + 1),
+    day = autoAddZero(time.getDate()),
+    hours = autoAddZero(time.getHours()),
+    minutes = autoAddZero(time.getMinutes()),
+    seconds = autoAddZero(time.getSeconds());
+  return `${time.getFullYear()}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+async function pickDate() {
+  return await $picker.date({ props: { mode: 1 } });
+}
+async function pickTime() {
+  return await $picker.date({ props: { mode: 0 } });
+}
+async function pickDateAndTime() {
+  return await $picker.date({ props: { mode: 2 } });
+}
+
 module.exports = {
   VERSION,
   $: $ui.get,
@@ -403,10 +464,13 @@ module.exports = {
   getMatrixItem,
   getPathLevelsList,
   getUUID,
-  getUnixTime: dateTime.getUnixTime,
+  getUnixTime,
+  getSecondUnixTime,
   getShareLink: share.getLink,
   getShareText: share.getText,
-  getTimestamp: dateTime.getUnixTime,
+  getTimestamp: getUnixTime,
+  getTodayWhatTimeDate,
+  getTomorrowWhatTimeDate,
   hasString,
   hasArray,
   http: new Http(),
@@ -442,13 +506,16 @@ module.exports = {
   logW: warn,
   mkdirs,
   paste,
+  pickDate,
+  pickDateAndTime,
+  pickTime,
   quicklookUrl,
   share,
   showView,
   startLoading,
   startsWithList,
   stopLoading,
-  timestampToTimeStr: dateTime.timestampToTimeStr,
+  timestampToTimeStr,
   toast,
   toInt,
   urlEncode: $text.URLEncode,
