@@ -1,4 +1,26 @@
-const VERSION = 2;
+const VERSION = 3;
+class ColorData {
+  constructor() {
+    this.COLOR = {
+      BLACK_WHITE: this.getColor("black", "white"),
+      GRAY: this.getColor("gray")
+    };
+    this.titleTextColor = this.getColor("white", "black");
+    this.videoItemBgcolor = this.COLOR.GRAY;
+    this.navSelectedTextColor = this.COLOR.BLACK_WHITE;
+    this.navTextColor = this.COLOR.GRAY;
+    this.navSelectedIconColor = this.COLOR.BLACK_WHITE;
+    this.navIconColor = this.COLOR.GRAY;
+  }
+  getColor(light, dark) {
+    return dark
+      ? $color({
+          light,
+          dark
+        })
+      : $color(light);
+  }
+}
 class DateTime {
   constructor(mode) {
     this.DATE_TIME = new Date(); //pickDateTime后可修改
@@ -576,6 +598,17 @@ class ListView {
     });
   }
 }
+class ListViewItemLoading {
+  constructor(sender) {
+    this.Sender = sender;
+  }
+  startLoading(idx) {
+    this.Sender.cell(idx).startLoading();
+  }
+  stopLoading(idx) {
+    this.Sender.cell(idx).stopLoading();
+  }
+}
 class ModSQLite {
   constructor(dataBaseFile, tableId) {
     this.TABLE_ID = tableId;
@@ -628,7 +661,6 @@ class SQLite {
   }
   hasTable(tableId) {
     const result = this.query(`SELECT * FROM ${tableId}`);
-    $console.info(this.getError(result));
     if (result.error) {
       $console.error(result.error);
     }
@@ -808,7 +840,11 @@ class SQLite {
     $console.info({
       getError: sqlResult
     });
-    const isError = sqlResult.result !== true || sqlResult.error !== undefined;
+    const isError =
+      sqlResult === undefined ||
+      sqlResult === null ||
+      sqlResult.result !== true ||
+      sqlResult.error !== undefined;
     return {
       success: !isError,
       error: isError,
@@ -942,6 +978,7 @@ class UiKit {
       views: [viewData]
     });
   }
+  showTabAndView() {}
   showView(viewData) {
     $ui.window === undefined ? $ui.render(viewData) : $ui.push(viewData);
   }
@@ -985,10 +1022,12 @@ class VariableKit {
 }
 module.exports = {
   VERSION,
+  ColorData,
   DateTime,
   GridView,
   Http,
   ListView,
+  ListViewItemLoading,
   Object: ObjectKit,
   Storage: {
     Keychain,

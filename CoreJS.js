@@ -1,4 +1,4 @@
-const VERSION = 13,
+const VERSION = 14,
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -115,7 +115,8 @@ class ModCore {
     allowKeyboard,
     allowWidget,
     allowWidgetSize,
-    apiList
+    apiList,
+    contentMatchRules
   }) {
     this.App = app;
     this.MOD_INFO = {
@@ -141,7 +142,10 @@ class ModCore {
         allowWidget === true
           ? allowWidgetSize || [0, 1, 2, 3, 5, 6, 7]
           : undefined,
-      API_LIST: apiList
+      API_LIST: apiList,
+      CONTENT_MATCH_MODE: contentMatchRules !== undefined,
+      CONTENT_MATCH_RULES: contentMatchRules
+      //      [{type:"url",mode:"regexp",rule: /ab+c/,id:"example_url"},{type:"image",mode:"regexp",rule: /ab+c/,id:"example_image"}]
     };
     this.SQLITE = this.initSQLite();
     this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
@@ -181,6 +185,7 @@ class ModLoader {
       WIDGET_MOD_ID: undefined,
       GRID_LIST_MODE: gridListMode == true
     };
+    this.MOD_MATCH_RULES = {};
     this.WidgetLoader = new WidgetLoader(this);
     this.ApiManager = new ApiManager(this);
     if ($.isArray(modList)) {
@@ -200,6 +205,19 @@ class ModLoader {
       AUTHOR,
       CORE_VERSION
     } = modCore.MOD_INFO;
+    const addModLog = {
+      ALLOW_API,
+      ALLOW_CONTEXT,
+      ALLOW_KEYBOARD,
+      ALLOW_WIDGET,
+      API_LIST,
+      ID,
+      NAME,
+      AUTHOR,
+      CORE_VERSION,
+      addSu: false,
+      errorResult: []
+    };
     if (
       $.hasString(ID) &&
       $.hasString(NAME) &&
@@ -218,13 +236,18 @@ class ModLoader {
             ID,
             API_LIST
           });
+          addModLog.errorResult.push("success");
+          addModLog.addSu = true;
         }
       } else {
+        addModLog.errorResult.push("has added");
         $.error(`hasMod(${ID})`);
       }
     } else {
+      addModLog.errorResult.push("ID,NAME,AUTHOR,CORE_VERSION error");
       $.error("ID,NAME,AUTHOR,CORE_VERSION error");
     }
+    $console.info(addModLog);
   }
   addModsByList(fileNameList) {
     if (this.MOD_LIST_LOAD_FINISH != true) {
@@ -481,6 +504,9 @@ class ModLoader {
           this.showGridModList();
         } else if (this.CONFIG.APP_MODE_INDEX_MOD_ID) {
           this.runAppModeIndexMod();
+          $console.info({
+            runAppModeIndexMod: this.CONFIG.APP_MODE_INDEX_MOD_ID
+          });
         } else {
           $ui.render({
             props: {
@@ -550,6 +576,7 @@ class ModLoader {
       }
     });
   }
+  loadRules() {}
 }
 class ModModule {
   constructor({ author, id, mod, name, version }) {
@@ -842,6 +869,17 @@ class ApiManager {
       }
     });
   }
+}
+class Logger {
+  constructor(logDir) {
+    this.LOG_DIR = logDir;
+  }
+  saveFile(fileName, data) {
+    if (!$file.isDirectory(this.LOG_DIR)) {
+      return false;
+    }
+  }
+  logE(id, message) {}
 }
 module.exports = {
   CORE_VERSION: VERSION,

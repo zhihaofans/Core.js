@@ -459,6 +459,7 @@ module.exports = {
     isFileExist,
     mkdirs
   },
+  getAppName: () => $addin.current.displayName,
   getArrayLastItem,
   getLinks,
   getMatrixItem,
