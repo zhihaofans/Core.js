@@ -386,9 +386,11 @@ function getMatrixItem(id, idx) {
 function getUnixTime() {
   return new Date().getTime();
 }
+
 function getSecondUnixTime() {
   return Math.round(new Date().getTime() / 1000);
 }
+
 function getTodayWhatTimeDate({ hours, minutes, seconds, milliseconds }) {
   const nowDate = new Date(),
     todayYear = nowDate.getFullYear(),
@@ -404,6 +406,7 @@ function getTodayWhatTimeDate({ hours, minutes, seconds, milliseconds }) {
     milliseconds || 0
   );
 }
+
 function getTomorrowWhatTimeDate({ hours, minutes, seconds, milliseconds }) {
   const nowDate = new Date(),
     todayYear = nowDate.getFullYear(),
@@ -419,11 +422,13 @@ function getTomorrowWhatTimeDate({ hours, minutes, seconds, milliseconds }) {
     milliseconds || 0
   );
 }
+
 function autoAddZero(number) {
   const str = new String(number),
     num = new Number(number);
   return num >= 10 ? str : `0${str}`;
 }
+
 function timestampToTimeStr(timestamp) {
   const time = new Date(timestamp),
     month = autoAddZero(time.getMonth() + 1),
@@ -443,6 +448,15 @@ async function pickDateAndTime() {
   return await $picker.date({ props: { mode: 2 } });
 }
 
+function requireNew(fileName, checkFile = false) {
+  if (checkFile === true) {
+    if (!$file.exists(fileName)) {
+      throw "file is not exist";
+    }
+  }
+  const file = require(fileName);
+  return new file();
+}
 module.exports = {
   VERSION,
   $: $ui.get,
@@ -511,6 +525,7 @@ module.exports = {
   pickDateAndTime,
   pickTime,
   quicklookUrl,
+  requireNew,
   share,
   showView,
   startLoading,
