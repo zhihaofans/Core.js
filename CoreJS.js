@@ -1,4 +1,4 @@
-const VERSION = 14,
+const VERSION = 15,
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -99,6 +99,7 @@ class AppKernel {
   }
 }
 class ModCore {
+  #App;
   constructor({
     app,
     modId,
@@ -119,6 +120,7 @@ class ModCore {
     contentMatchRules
   }) {
     this.App = app;
+    this.#App = app;
     this.MOD_INFO = {
       ID: modId,
       NAME: modName,
@@ -129,8 +131,9 @@ class ModCore {
       AUTHOR: author,
       CORE_VERSION: coreVersion,
       DATABASE_ID: modId,
-      KEYCHAIN_DOMAIN: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
-      KEYCHAIN_DOMAIN_NEW: `${this.App.AppInfo.id}.mods.${author}.${modId}`,
+      MOD_DIR: app.MOD_DIR,
+      KEYCHAIN_DOMAIN: `${this.#App.AppInfo.id}.mods.${author}.${modId}`,
+      KEYCHAIN_DOMAIN_NEW: `${this.#App.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
       USE_SQLITE: useSqlite === true,
       NEED_UPDATE: coreVersion !== VERSION,
@@ -154,7 +157,7 @@ class ModCore {
     //    }
   }
   initSQLite() {
-    const SQLITE_FILE = this.App.DEFAULE_SQLITE_FILE;
+    const SQLITE_FILE = this.#App.DEFAULE_SQLITE_FILE;
     if (
       this.MOD_INFO.USE_SQLITE &&
       this.MOD_INFO.DATABASE_ID.length > 0 &&
@@ -172,8 +175,10 @@ class ModCore {
   }
 }
 class ModLoader {
+  #App;
   constructor({ app, appMode, modDir, modList, gridListMode = false }) {
     this.App = app;
+    this.#App = app;
     this.APP_MODE = appMode == true;
     this.MOD_LIST_LOAD_FINISH = false;
     this.MOD_DIR = modDir;
@@ -250,29 +255,32 @@ class ModLoader {
     $console.info(addModLog);
   }
   addModsByList(fileNameList) {
-    if (this.MOD_LIST_LOAD_FINISH != true) {
-      fileNameList.map(fileName => {
-        if ($.hasString(fileName)) {
-          try {
-            const thisMod = require(this.MOD_DIR + fileName);
-            this.addMod(new thisMod(this.App));
-          } catch (error) {
+    return new Promise((resolve, reject) => {
+      if (this.MOD_LIST_LOAD_FINISH != true) {
+        fileNameList.map(fileName => {
+          if ($.hasString(fileName)) {
+            try {
+              const thisMod = require(this.MOD_DIR + fileName);
+              this.addMod(new thisMod(this.#App));
+            } catch (error) {
+              $.error({
+                message: error.message,
+                fileName,
+                name: "ModLoader.addModsByList"
+              });
+            }
+          } else {
             $.error({
-              message: error.message,
+              message: "fileName is empty",
               fileName,
               name: "ModLoader.addModsByList"
             });
           }
-        } else {
-          $.error({
-            message: "fileName is empty",
-            fileName,
-            name: "ModLoader.addModsByList"
-          });
-        }
-      });
-      this.MOD_LIST_LOAD_FINISH = true;
-    }
+        });
+        this.MOD_LIST_LOAD_FINISH = true;
+      }
+      resolve(this.MOD_LIST);
+    });
   }
   getModList() {
     return this.MOD_LIST;
@@ -496,10 +504,10 @@ class ModLoader {
   }
   autoRunMod() {
     switch (true) {
-      case this.App.isWidgetEnv():
+      case this.#App.isWidgetEnv():
         this.runWidgetMod();
         break;
-      case this.App.isAppEnv():
+      case this.#App.isAppEnv():
         if (this.CONFIG.GRID_LIST_MODE) {
           this.showGridModList();
         } else if (this.CONFIG.APP_MODE_INDEX_MOD_ID) {
@@ -510,7 +518,7 @@ class ModLoader {
         } else {
           $ui.render({
             props: {
-              title: this.App.AppInfo.name
+              title: this.#App.AppInfo.name
             },
             views: [
               {
@@ -536,10 +544,10 @@ class ModLoader {
           });
         }
         break;
-      case this.App.isActionEnv() || this.App.isSafariEnv():
+      case this.#App.isActionEnv() || this.#App.isSafariEnv():
         this.runContextMod();
         break;
-      case this.App.isKeyboardEnv():
+      case this.#App.isKeyboardEnv():
         this.runKeyboardMod();
         break;
       default:
@@ -560,16 +568,17 @@ class ModLoader {
       } else if (modInfo.ICON) {
         modData.src = modInfo.ICON;
       } else {
-        modData.src = `https://api.setbug.com/tools/text2image/?font_name=wryh&text=${$text
-          .convertToPinYin(modInfo.NAME)
-          .toUpperCase()
-          .substring(0, 1)}`;
+        modData.src =
+          `http://api.setbug.com/tools/text2image/?font_name=wryh&text=${$text
+            .convertToPinYin(modInfo.NAME)
+            .toUpperCase()
+            .substring(0, 1)}&t=` + $.getUnixTime();
       }
       return modData;
     });
     $console.info(itemList);
     new UiKit().showGridList({
-      title: this.App.AppInfo.name,
+      title: this.#App.AppInfo.name,
       itemList,
       callback: (idx, data) => {
         this.runMod(modList.id[idx]);
@@ -589,10 +598,11 @@ class ModModule {
   }
 }
 class ModModuleLoader {
+  #Mod;
   constructor(mod) {
     this.Mod = mod;
-    this.App = this.Mod.App;
-    this.MOD_DIR = this.App.MOD_DIR;
+    this.#Mod = mod;
+    this.MOD_DIR = mod.MOD_DIR;
     this.ModuleList = {};
   }
   addModule(fileName) {
@@ -681,7 +691,6 @@ class ModModuleLoader {
 class WidgetLoader {
   constructor(modLoader) {
     this.ModLoader = modLoader;
-    this.App = modLoader.App;
     this.WIDGET_REGISTER_LIST = {};
     this.MOD_REGISTER_LIST = {};
   }
@@ -746,8 +755,9 @@ class WidgetLoader {
   }
 }
 class GlobalStorage {
+  #App;
   constructor(app) {
-    this.App = app;
+    this.#App = app;
     this._DATA_ = {};
   }
   get(key) {
