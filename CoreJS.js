@@ -1,4 +1,4 @@
-const VERSION = 15,
+const VERSION = 16,
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -132,8 +132,8 @@ class ModCore {
       CORE_VERSION: coreVersion,
       DATABASE_ID: modId,
       MOD_DIR: app.MOD_DIR,
-      KEYCHAIN_DOMAIN: `${this.#App.AppInfo.id}.mods.${author}.${modId}`,
-      KEYCHAIN_DOMAIN_NEW: `${this.#App.AppInfo.id}.mods.${author}.${modId}`,
+      KEYCHAIN_DOMAIN: `${app.AppInfo.id}.mods.${author}.${modId}`,
+      KEYCHAIN_DOMAIN_NEW: `${app.AppInfo.id}.mods.${author}.${modId}`,
       KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
       USE_SQLITE: useSqlite === true,
       NEED_UPDATE: coreVersion !== VERSION,
@@ -605,6 +605,53 @@ class ModModuleLoader {
     this.MOD_DIR = mod.MOD_DIR;
     this.ModuleList = {};
   }
+  addModulesByList(fileNameList) {
+    let MODULE_LIST_LOAD_FINISH = false;
+    let ERROR_MODULES_ID = [];
+    return new Promise((resolve, reject) => {
+      if (this.MODULE_LIST_LOAD_FINISH != true) {
+        fileNameList.map(fileName => {
+          if ($.hasString(fileName)) {
+            try {
+              const addRe = this.addModule(fileName);
+            } catch (error) {
+              $.error({
+                message: error.message,
+                fileName,
+                name: "ModLoader.addModsByList"
+              });
+              ERROR_MODULES_ID.push(fileName);
+            }
+          } else {
+            $.error({
+              message: "fileName is empty",
+              fileName,
+              name: "ModLoader.addModsByList"
+            });
+          }
+        });
+        this.MOD_LIST_LOAD_FINISH = true;
+      }
+      if (ERROR_MODULES_ID.length > 0) {
+        $.error({
+          name: "core.module.ModuleLoader.addModulesByList",
+          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          message: "批量加载出现错误",
+          ERROR_MODULES_ID,
+          count: ERROR_MODULES_ID.length
+        });
+      } else {
+        $.info({
+          name: "core.module.ModuleLoader.addModulesByList",
+          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          message: "批量加载成功",
+          ERROR_MODULES_ID,
+          count: ERROR_MODULES_ID.length
+        });
+      }
+      resolve(ERROR_NUMBER);
+    });
+  }
   addModule(fileName) {
     if (fileName.length <= 0) {
       $.error({
@@ -636,26 +683,26 @@ class ModModuleLoader {
     }
     try {
       const moduleFile = require(modulePath),
-        thisModule = new moduleFile(this.Mod);
+        thisModule = new moduleFile(this.#Mod);
       if (this.ModuleList[thisModule.MODULE_ID] !== undefined) {
         $.error({
           name: "core.module.ModuleLoader.addModule",
           message: "重复添加Module",
-          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          MOD_NAME: this.#Mod.MOD_INFO.NAME,
           CORE_ID: thisModule.MOD_ID,
-          MOD_ID: this.Mod.MOD_INFO.ID,
+          MOD_ID: this.#Mod.MOD_INFO.ID,
           MODULE_ID: thisModule.MODULE_ID,
           MODULE_NAME: thisModule.MODULE_NAME
         });
         return false;
       }
-      if (this.Mod.MOD_INFO.ID != thisModule.MOD_ID) {
+      if (this.#Mod.MOD_INFO.ID != thisModule.MOD_ID) {
         $.error({
           name: "core.module.ModuleLoader.addModule",
           message: "CORE_ID错误",
-          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          MOD_NAME: this.#Mod.MOD_INFO.NAME,
           CORE_ID: thisModule.MOD_ID,
-          MOD_ID: this.Mod.MOD_INFO.ID,
+          MOD_ID: this.#Mod.MOD_INFO.ID,
           MODULE_ID: thisModule.MODULE_ID,
           MODULE_NAME: thisModule.MODULE_NAME
         });
@@ -669,16 +716,16 @@ class ModModuleLoader {
       }
       this.ModuleList[thisModule.MODULE_ID] = thisModule;
       $.info(
-        `Mod[${this.Mod.MOD_INFO.NAME}]加载module[${thisModule.MODULE_NAME}]`
+        `Mod[${this.#Mod.MOD_INFO.NAME}]加载module[${thisModule.MODULE_NAME}]`
       );
       return true;
     } catch (error) {
       $.error(error);
       $.error({
-        line: 633,
+        line: 678,
         id: "core.module.ModuleLoader.addModule.try",
         fileName,
-        MOD_NAME: this.Mod.MOD_INFO.NAME,
+        MOD_NAME: this.#Mod.MOD_INFO.NAME,
         error: error.message
       });
       return false;
