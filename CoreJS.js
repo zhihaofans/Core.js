@@ -1,4 +1,4 @@
-const VERSION = 16,
+const VERSION = 17,
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -11,19 +11,24 @@ class AppKernel {
     this.AppInfo = this.AppConfig.info;
     this.AppInfo.id = appId;
     this.DATA_DIR = {
-      SHARED: "shared://zhihaofans/CoreJS/",
-      ICLOUD: "drive://zhihaofans/CoreJS/",
+      SHARED: "shared://zhihaofans/CoreJS/" + appId,
+      ICLOUD: "drive://zhihaofans/CoreJS/" + appId,
       LOCAL: "/assets/.files/"
     };
     this.DEFAULE_SQLITE_FILE = this.DATA_DIR.LOCAL + "mods.db";
-    $.file.mkdirs(this.DATA_DIR.SHARED);
-    $.file.mkdirs(this.DATA_DIR.ICLOUD);
-    $.file.mkdirs(this.DATA_DIR.LOCAL);
+    const INFO_MKDIRS_SHARED = $.file.mkdirs(this.DATA_DIR.SHARED);
+    const INFO_MKDIRS_ICLOUD = $.file.mkdirs(this.DATA_DIR.ICLOUD);
+    const INFO_MKDIRS_LOCAL = $.file.mkdirs(this.DATA_DIR.LOCAL);
     this.l10n(l10nPath);
     if (this.DEBUG) {
       $.info(`appName:${this.AppInfo.name}`);
       $.info(`appId:${this.AppInfo.id}`);
       $.info(`debug:${this.DEBUG}`);
+      $console.info({
+        INFO_MKDIRS_SHARED,
+        INFO_MKDIRS_ICLOUD,
+        INFO_MKDIRS_LOCAL
+      });
     }
     this.ModLoader = new ModLoader({ modDir, app: this, modList });
     this.GlobalStorage = new GlobalStorage();
@@ -602,7 +607,7 @@ class ModModuleLoader {
   constructor(mod) {
     this.Mod = mod;
     this.#Mod = mod;
-    this.MOD_DIR = mod.MOD_DIR;
+    this.MOD_DIR = mod.MOD_INFO.MOD_DIR;
     this.ModuleList = {};
   }
   addModulesByList(fileNameList) {
@@ -635,7 +640,7 @@ class ModModuleLoader {
       if (ERROR_MODULES_ID.length > 0) {
         $.error({
           name: "core.module.ModuleLoader.addModulesByList",
-          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          MOD_NAME: this.#Mod.MOD_INFO.NAME,
           message: "批量加载出现错误",
           ERROR_MODULES_ID,
           count: ERROR_MODULES_ID.length
@@ -643,7 +648,7 @@ class ModModuleLoader {
       } else {
         $.info({
           name: "core.module.ModuleLoader.addModulesByList",
-          MOD_NAME: this.Mod.MOD_INFO.NAME,
+          MOD_NAME: this.#Mod.MOD_INFO.NAME,
           message: "批量加载成功",
           ERROR_MODULES_ID,
           count: ERROR_MODULES_ID.length
@@ -653,10 +658,21 @@ class ModModuleLoader {
     });
   }
   addModule(fileName) {
+    if (this.MOD_DIR == undefined || this.MOD_DIR.length <= 0) {
+      $.error({
+        name: "core.module.ModuleLoader.addModule",
+        MOD_NAME: this.#Mod.MOD_INFO.NAME,
+        message: "MOD_DIR错误",
+        MOD_DIR: this.MOD_DIR,
+        fileName,
+        length: fileName.length
+      });
+      return false;
+    }
     if (fileName.length <= 0) {
       $.error({
         name: "core.module.ModuleLoader.addModule",
-        MOD_NAME: this.Mod.MOD_INFO.NAME,
+        MOD_NAME: this.#Mod.MOD_INFO.NAME,
         message: "需要module fileName",
         fileName,
         length: fileName.length
@@ -664,19 +680,25 @@ class ModModuleLoader {
       return false;
     }
     const modulePath = this.MOD_DIR + fileName;
-    if (this.Mod.MOD_INFO.ID.length <= 0) {
+    $console.info({
+      debug: "addModule",
+      fileName,
+      modulePath
+    });
+    if (this.#Mod.MOD_INFO.ID.length <= 0) {
       $.error({
         name: "core.module.ModuleLoader.addModule",
         message: "需要Mod.MOD_INFO.ID",
-        MOD_NAME: this.Mod.MOD_INFO.NAME
+        MOD_NAME: this.#Mod.MOD_INFO.NAME
       });
       return false;
     }
+
     if (!$file.exists(modulePath) || $file.isDirectory(modulePath)) {
       $.error({
         name: "core.module.ModuleLoader.addModule",
         message: "module文件不存在",
-        MOD_NAME: this.Mod.MOD_INFO.NAME,
+        MOD_NAME: this.#Mod.MOD_INFO.NAME,
         fileName
       });
       return false;
@@ -709,9 +731,11 @@ class ModModuleLoader {
         return false;
       }
       if (thisModule.AUTHOR == undefined || thisModule.AUTHOR.length <= 0) {
-        thisModule.AUTHOR = this.Mod.MOD_INFO.AUTHOR;
+        thisModule.AUTHOR = this.#Mod.MOD_INFO.AUTHOR;
         $.info(
-          `自动为模块${thisModule.MODULE_ID}添加mod的作者(${this.Mod.MOD_INFO.AUTHOR})`
+          `自动为模块${thisModule.MODULE_ID}添加mod的作者(${
+            this.#Mod.MOD_INFO.AUTHOR
+          })`
         );
       }
       this.ModuleList[thisModule.MODULE_ID] = thisModule;
@@ -938,6 +962,7 @@ class Logger {
   }
   logE(id, message) {}
 }
+
 module.exports = {
   CORE_VERSION: VERSION,
   VERSION,
