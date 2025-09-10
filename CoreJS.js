@@ -11,8 +11,8 @@ class AppKernel {
     this.AppInfo = this.AppConfig.info;
     this.AppInfo.id = appId;
     this.DATA_DIR = {
-      SHARED: "shared://zhihaofans/CoreJS/" + appId,
-      ICLOUD: "drive://zhihaofans/CoreJS/" + appId,
+      SHARED: "shared://zhihaofans/CoreJS/" + appId + "/",
+      ICLOUD: "drive://zhihaofans/CoreJS/" + appId + "/",
       LOCAL: "/assets/.files/"
     };
     this.DEFAULE_SQLITE_FILE = this.DATA_DIR.LOCAL + "mods.db";
