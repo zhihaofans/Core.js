@@ -1,4 +1,4 @@
-const VERSION = 17,
+const VERSION = 18,
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
   WIDGET_FAMILY_SIZE = $widget.family;
@@ -954,13 +954,27 @@ class ApiManager {
 class Logger {
   constructor(logDir) {
     this.LOG_DIR = logDir;
+    this.TAG = "CoreJS.Logger";
+  }
+  initTag(tag) {
+    this.TAG = tag;
   }
   saveFile(fileName, data) {
     if (!$file.isDirectory(this.LOG_DIR)) {
       return false;
     }
   }
-  logE(id, message) {}
+  logE(message) {
+    $console.error({
+      tag: this.TAG,
+      message
+    });
+  }
+}
+class ModConfig {
+  constructor(mod) {
+    this.ID = mod.MOD_INFO.ID;
+  }
 }
 
 module.exports = {
