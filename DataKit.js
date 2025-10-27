@@ -1,8 +1,36 @@
 const VERSION = 1;
-
-function showView(viewData) {
-  $ui.window === undefined ? $ui.render(viewData) : $ui.push(viewData);
+class DataView {
+  constructor() {}
+  init() {
+    showView({
+      props: {
+        title: "DataKit管理器"
+      },
+      views: [
+        {
+          type: "list",
+          props: {
+            data: ["文件"]
+          },
+          layout: $layout.fill,
+          events: {
+            didSelect: (sender, indexPath, data) => {
+              const { section, row } = indexPath;
+              switch (row) {
+                case 0:
+                  const filev = new FileView();
+                  filev.init();
+                  break;
+                default:
+              }
+            }
+          }
+        }
+      ]
+    });
+  }
 }
+
 class KeychainKit {
   constructor(domain) {
     this.DOMAIN = domain;
@@ -14,6 +42,12 @@ class KeychainKit {
   get(key) {
     const item = $keychain.get(key, this.DOMAIN);
     return item;
+  }
+  setValue(key, value) {
+    return this.set(key, value);
+  }
+  getValue(key) {
+    return this.get(key);
   }
   remove(key) {
     const succeeded = $keychain.set(key, this.DOMAIN);
@@ -29,6 +63,9 @@ class KeychainKit {
   }
   getItemList() {
     return this.getKeyList().map(k => this.get(k));
+  }
+  getAll() {
+    return this.getItemList();
   }
 }
 class FileView {
@@ -60,36 +97,8 @@ class FileView {
     });
   }
 }
-class DataView {
-  constructor() {}
-  init() {
-    showView({
-      props: {
-        title: "DataKit管理器"
-      },
-      views: [
-        {
-          type: "list",
-          props: {
-            data: ["文件"]
-          },
-          layout: $layout.fill,
-          events: {
-            didSelect: (sender, indexPath, data) => {
-              const { section, row } = indexPath;
-              switch (row) {
-                case 0:
-                  const filev = new FileView();
-                  filev.init();
-                  break;
-                default:
-              }
-            }
-          }
-        }
-      ]
-    });
-  }
+function showView(viewData) {
+  $ui.window === undefined ? $ui.render(viewData) : $ui.push(viewData);
 }
 module.exports = {
   VERSION,
