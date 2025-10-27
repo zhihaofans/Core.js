@@ -1,6 +1,10 @@
 const VERSION = 18,
+  LIB_VERSION = {
+    DataKit: 1
+  },
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
+  { KeychainKit } = require("DataKit"),
   WIDGET_FAMILY_SIZE = $widget.family;
 class AppKernel {
   constructor({ appId, modDir, modList, l10nPath }) {
@@ -138,8 +142,7 @@ class ModCore {
       DATABASE_ID: modId,
       MOD_DIR: app.MOD_DIR,
       KEYCHAIN_DOMAIN: `${app.AppInfo.id}.mods.${author}.${modId}`,
-      KEYCHAIN_DOMAIN_NEW: `${app.AppInfo.id}.mods.${author}.${modId}`,
-      KEYCHAIN_DOMAIN_OLD: `nobundo.mods.${author}.${modId}`,
+
       USE_SQLITE: useSqlite === true,
       NEED_UPDATE: coreVersion !== VERSION,
       ALLOW_API: allowApi === true,
@@ -156,7 +159,7 @@ class ModCore {
       //      [{type:"url",mode:"regexp",rule: /ab+c/,id:"example_url"},{type:"image",mode:"regexp",rule: /ab+c/,id:"example_image"}]
     };
     this.SQLITE = this.initSQLite();
-    this.Keychain = new Storage.Keychain(this.MOD_INFO.KEYCHAIN_DOMAIN);
+    this.Keychain = new KeychainKit(this.MOD_INFO.KEYCHAIN_DOMAIN);
     //    if (apiList && apiList.length > 0) {
     //      app.ApiManager.addApiList(this.MOD_INFO.ID, apiList);
     //    }
