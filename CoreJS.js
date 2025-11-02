@@ -1,11 +1,13 @@
 const VERSION = 18,
   LIB_VERSION = {
-    DataKit: 1
+    DataKit: 1,
+    $: 2
   },
   $ = require("$"),
   { Storage, UiKit } = require("Next"),
   { KeychainKit } = require("DataKit"),
   WIDGET_FAMILY_SIZE = $widget.family;
+
 class AppKernel {
   constructor({ appId, modDir, modList, l10nPath }) {
     this.START_TIME = new Date().getTime();
@@ -576,11 +578,11 @@ class ModLoader {
       } else if (modInfo.ICON) {
         modData.src = modInfo.ICON;
       } else {
-        modData.src =
-          `http://api.setbug.com/tools/text2image/?font_name=wryh&text=${$text
-            .convertToPinYin(modInfo.NAME)
-            .toUpperCase()
-            .substring(0, 1)}&t=` + $.getUnixTime();
+        const namePinyin = $text.convertToPinYin(modInfo.NAME).substring(0, 1);
+        const icon = $.textToBase64Image(namePinyin);
+        modData.data = $data({
+          base64: icon
+        });
       }
       return modData;
     });

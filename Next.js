@@ -950,7 +950,7 @@ class UiKit {
           }
         ],
         data: itemList.map(item => {
-          return {
+          const it = {
             menu_image: {
               symbol: item.icon,
               src: item.src,
@@ -962,6 +962,8 @@ class UiKit {
               textColor: $color("gray")
             }
           };
+
+          return it;
         })
       },
       layout: $layout.fill,
