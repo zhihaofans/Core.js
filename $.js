@@ -150,7 +150,21 @@ function getPathLevelsList(path) {
   }
   return undefined;
 }
-
+function getUrlParameters(URL) {
+  try {
+    return JSON.parse(
+      '{"' +
+        decodeURI(URL.split("?")[1])
+          .replace(/"/g, '\\"')
+          .replace(/&/g, '","')
+          .replace(/=/g, '":"') +
+        '"}'
+    );
+  } catch (error) {
+    $console.error(error);
+    return undefined;
+  }
+}
 function mkdirs(dir) {
   const pathLevelsList = getPathLevelsList(dir);
   if (pathLevelsList == undefined || pathLevelsList.length == 0) {
@@ -295,6 +309,14 @@ function copy(text) {
     resolve(text);
   });
 }
+function escapeXml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
 function paste() {
   return $clipboard.text;
@@ -428,7 +450,37 @@ function autoAddZero(number) {
     num = new Number(number);
   return num >= 10 ? str : `0${str}`;
 }
+function textToBase64Image(text, opts) {
+  opts = Object.assign(
+    {
+      size: 128,
+      bgColor: "#2196f3",
+      textColor: "#fff",
+      fontFamily: "sans-serif",
+      fontWeight: "bold"
+    },
+    opts
+  );
 
+  const fontSize = Math.floor(opts.size / (text.length > 1 ? 2 : 1.5));
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="${opts.size}" height="${
+    opts.size
+  }">
+    <rect width="100%" height="100%" fill="${opts.bgColor}" rx="${
+    opts.size * 0.12
+  }" ry="${opts.size * 0.12}"/>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+          font-family="${opts.fontFamily}" font-weight="${
+    opts.fontWeight
+  }" font-size="${fontSize}" fill="${opts.textColor}">
+      ${escapeXml(text)}
+    </text>
+  </svg>`.trim();
+
+  const base64 = `data:image/svg+xml;base64` + $text.base64Encode(svg);
+  return base64;
+}
 function timestampToTimeStr(timestamp) {
   const time = new Date(timestamp),
     month = autoAddZero(time.getMonth() + 1),
@@ -480,6 +532,7 @@ module.exports = {
   getPathLevelsList,
   getUUID,
   getUnixTime,
+  getUrlParameters,
   getSecondUnixTime,
   getShareLink: share.getLink,
   getShareText: share.getText,
@@ -531,6 +584,7 @@ module.exports = {
   startLoading,
   startsWithList,
   stopLoading,
+  textToBase64Image,
   timestampToTimeStr,
   toast,
   toInt,
