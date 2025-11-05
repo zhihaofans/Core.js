@@ -1,16 +1,16 @@
-function cookieToObject(cookie) {
-  if (cookie) {
-    const cookieResult = {};
-    cookie.split(";").map(cookieItem => {
-      const itemSplit = cookieItem.trim().split("="),
-        itemKey = itemSplit[0],
-        itemValve = itemSplit[1];
-      cookieResult[itemKey] = itemValve;
-    });
-    return cookieResult;
-  } else {
-    return undefined;
+function cookieToObject(cookieStr) {
+  const cookieParts = cookieStr.split(/,(?=\s*[a-zA-Z0-9_-]+=)/);
+
+  const cookies = {};
+  for (const part of cookieParts) {
+    const match = part.match(/^\s*([^=]+)=([^;]+)/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      cookies[key] = value;
+    }
   }
+  return cookies;
 }
 function paramsToUrl(params) {
   //const params = {aaa: "aaa"};
@@ -32,13 +32,23 @@ class HttpRespResult {
     this.resp = resp;
     this.resp_is_undefined = resp === undefined;
     if (!this.resp_is_undefined) {
-      this.cookie = cookieToObject(resp.response.headers["Set-Cookie"]);
-      this.data = resp.data;
-      this.errorMessage = resp.error?.localizedDescription || undefined;
-      this.headers = resp.response.headers;
-      this.httpCode = resp.response.statusCode;
-      this.isError = resp.error != undefined;
-      this.raw = resp.rawData;
+      try {
+        this.cookieString = resp.response.headers["Set-Cookie"];
+        if (this.cookieString != undefined && this.cookieString.length > 0) {
+          this.cookie = cookieToObject(resp.response.headers["Set-Cookie"]);
+        }
+        this.data = resp.data;
+        this.errorMessage = resp.error?.localizedDescription || undefined;
+        this.headers = resp.response.headers;
+        this.httpCode = resp.response.statusCode;
+        this.isError = resp.error != undefined;
+        this.raw = resp.rawData;
+      } catch (error) {
+        $console.error(error);
+        this.isError = true;
+        this.errorMessage = error.message;
+      } finally {
+      }
     }
   }
 }
