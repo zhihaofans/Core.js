@@ -269,9 +269,14 @@ function hasString(string) {
 function isString(string) {
   return typeof string === "string";
 }
-
+function startsWith(string, keyword) {
+  if (!hasString(string) || !hasString(keyword)) {
+    return false;
+  }
+  return string.startsWith(keyword);
+}
 function startsWithList(string, list) {
-  if (hasString(string) || !isArray(list)) {
+  if (!hasString(string) || !isArray(list)) {
     return false;
   }
   list.map(item => {
@@ -582,6 +587,7 @@ module.exports = {
   share,
   showView,
   startLoading,
+  startsWith,
   startsWithList,
   stopLoading,
   textToBase64Image,

@@ -30,11 +30,6 @@ class AppKernel {
       $.info(`appName:${this.AppInfo.name}`);
       $.info(`appId:${this.AppInfo.id}`);
       $.info(`debug:${this.DEBUG}`);
-      $console.info({
-        INFO_MKDIRS_SHARED,
-        INFO_MKDIRS_ICLOUD,
-        INFO_MKDIRS_LOCAL
-      });
     }
     this.ModLoader = new ModLoader({ modDir, app: this, modList });
     this.GlobalStorage = new GlobalStorage();
@@ -246,11 +241,6 @@ class ModLoader {
         this.MOD_LIST.id.push(ID);
         this.MOD_LIST.mods[ID] = modCore;
         if (CORE_VERSION >= 12 && ALLOW_API === true) {
-          $console.info({
-            addApiList: this.ApiManager.addApiList(ID, API_LIST),
-            ID,
-            API_LIST
-          });
           addModLog.errorResult.push("success");
           addModLog.addSu = true;
         }
@@ -578,11 +568,6 @@ class ModLoader {
       } else if (modInfo.ICON) {
         modData.src = modInfo.ICON;
       } else {
-        const namePinyin = $text.convertToPinYin(modInfo.NAME).substring(0, 1);
-        const icon = $.textToBase64Image(namePinyin);
-        modData.data = $data({
-          base64: icon
-        });
       }
       return modData;
     });
@@ -685,11 +670,7 @@ class ModModuleLoader {
       return false;
     }
     const modulePath = this.MOD_DIR + fileName;
-    $console.info({
-      debug: "addModule",
-      fileName,
-      modulePath
-    });
+
     if (this.#Mod.MOD_INFO.ID.length <= 0) {
       $.error({
         name: "core.module.ModuleLoader.addModule",
@@ -761,7 +742,15 @@ class ModModuleLoader {
     }
   }
   getModule(moduleId) {
-    return this.ModuleList[moduleId];
+    const module_ = this.ModuleList[moduleId];
+    if (!$.hasString(moduleId) || module_ == undefined) {
+      $console.error({
+        getModule: "undefined",
+        moduleId,
+        module_
+      });
+    }
+    return module_;
   }
 }
 class WidgetLoader {
