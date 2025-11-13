@@ -294,11 +294,23 @@ function toast(success, successText, errorText) {
 function startLoading() {
   $ui.loading(true);
 }
-
+function startListItemLoading(sender, indexPath) {
+  try {
+    sender.cell(indexPath).startLoading();
+  } catch (error) {
+    $console.error(error);
+  }
+}
 function stopLoading() {
   $ui.loading(false);
 }
-
+function stopListItemLoading(sender, indexPath) {
+  try {
+    sender.cell(indexPath).stopLoading();
+  } catch (error) {
+    $console.error(error);
+  }
+}
 function quicklookUrl(url) {
   return new Promise((resolve, reject) => {
     $quicklook.open({
@@ -586,9 +598,11 @@ module.exports = {
   requireNew,
   share,
   showView,
+  startListItemLoading,
   startLoading,
   startsWith,
   startsWithList,
+  stopListItemLoading,
   stopLoading,
   textToBase64Image,
   timestampToTimeStr,
