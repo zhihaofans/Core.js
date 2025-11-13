@@ -47,16 +47,19 @@ class HttpRespResult {
         $console.error(error);
         this.isError = true;
         this.errorMessage = error.message;
-      } finally {
       }
     }
   }
 }
 class Http {
-  constructor(url) {
+  constructor(url, params) {
     this.HEADER = {};
     this.TIMEOUT = 5;
     this.URL = url;
+    this.oldUrl = url;
+    if (params != undefined) {
+      this.params(params);
+    }
   }
   cookie(cookieStr) {
     this.HEADER["Cookie"] = cookieStr;
