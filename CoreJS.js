@@ -1,11 +1,12 @@
 const VERSION = 18,
   LIB_VERSION = {
     DataKit: 1,
+    NEXT: 3,
     $: 2
   },
   $ = require("$"),
-  { Storage, UiKit } = require("Next"),
-  { KeychainKit } = require("DataKit"),
+  { UiKit } = require("Next"),
+  { SQLite, KeychainKit } = require("DataKit"),
   WIDGET_FAMILY_SIZE = $widget.family;
 
 class AppKernel {
@@ -32,7 +33,6 @@ class AppKernel {
       $.info(`debug:${this.DEBUG}`);
     }
     this.ModLoader = new ModLoader({ modDir, app: this, modList });
-    this.GlobalStorage = new GlobalStorage();
   }
   l10n(l10nPath) {
     if ($.file.isFileExist(l10nPath)) {
@@ -162,20 +162,23 @@ class ModCore {
     //    }
   }
   initSQLite() {
-    const SQLITE_FILE = this.#App.DEFAULE_SQLITE_FILE;
-    if (
-      this.MOD_INFO.USE_SQLITE &&
-      this.MOD_INFO.DATABASE_ID.length > 0 &&
-      SQLITE_FILE.length > 0
-    ) {
-      const SQLite = new Storage.ModSQLite(
-        SQLITE_FILE,
-        this.MOD_INFO.DATABASE_ID
-      );
-      SQLite.createTable();
-      return SQLite;
-    } else {
+    try {
+      const SQLITE_FILE = this.#App.DEFAULE_SQLITE_FILE;
+      if (
+        this.MOD_INFO.USE_SQLITE &&
+        this.MOD_INFO.DATABASE_ID.length > 0 &&
+        SQLITE_FILE.length > 0
+      ) {
+        const SQLite = new ModSQL(SQLITE_FILE, this.MOD_INFO.DATABASE_ID);
+        SQLite.createTable();
+        return SQLite;
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      $console.error(error);
       return undefined;
+    } finally {
     }
   }
 }
@@ -252,7 +255,7 @@ class ModLoader {
       addModLog.errorResult.push("ID,NAME,AUTHOR,CORE_VERSION error");
       $.error("ID,NAME,AUTHOR,CORE_VERSION error");
     }
-    $console.info(addModLog);
+    //$console.info(addModLog);
   }
   addModsByList(fileNameList) {
     return new Promise((resolve, reject) => {
@@ -362,6 +365,9 @@ class ModLoader {
     ) {
       this.ACTION_MOD_ID = modId;
       this.CONFIG.CONTEXT_MOD_ID = modId;
+      $console.info({
+        setContextMod: modId
+      });
     }
   }
   runContextMod() {
@@ -372,6 +378,7 @@ class ModLoader {
         thisMod.runContext();
       } catch (error) {
         $.error(error);
+        $ui.error(error.message);
       }
     } else {
       $app.close();
@@ -819,22 +826,7 @@ class WidgetLoader {
     thisMod.runWidget(id);
   }
 }
-class GlobalStorage {
-  #App;
-  constructor(app) {
-    this.#App = app;
-    this._DATA_ = {};
-  }
-  get(key) {
-    return this._DATA_[key];
-  }
-  set(key, value) {
-    this._DATA_[key] = value;
-  }
-  remove(key) {
-    this._DATA_[key] = undefined;
-  }
-}
+
 class ApiManager {
   constructor(modLoader) {
     this.ModLoader = modLoader;
@@ -965,9 +957,33 @@ class Logger {
     });
   }
 }
-class ModConfig {
-  constructor(mod) {
-    this.ID = mod.MOD_INFO.ID;
+class ModSQL {
+  constructor(dataBaseFile, tableId) {
+    this.TABLE_ID = tableId;
+    this.SQLITE = new SQLite(dataBaseFile);
+  }
+  hasTable() {
+    return this.SQLITE.hasTable(this.TABLE_ID);
+  }
+  createTable() {
+    this.SQLITE.createSimpleTable(this.TABLE_ID);
+  }
+  getItem(key) {
+    return this.SQLITE.getSimpleData(this.TABLE_ID, key);
+  }
+  setItem(key, value) {
+    return this.SQLITE.setSimpleData(this.TABLE_ID, key, value);
+  }
+  deleteItem(key) {
+    const sql = `DELETE FROM ${this.TABLE_ID} WHERE id=?`,
+      result = this.SQLITE.update(sql, [key]);
+    if (result.error) {
+      $console.error(result.error);
+    }
+    return result.result;
+  }
+  getError(sqlResult) {
+    return this.SQLITE.getError(sqlResult);
   }
 }
 
