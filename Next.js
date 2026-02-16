@@ -912,7 +912,7 @@ class UiKit {
         columns: columns || 3,
         itemHeight: itemHeight || 90,
         spacing: spacing || 5,
-        scrollEnabled: false,
+        scrollEnabled: true,
         template: [
           {
             type: "view",
