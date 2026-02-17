@@ -1,4 +1,4 @@
-const VERSION = 18,
+const VERSION = 19,
   LIB_VERSION = {
     DataKit: 1,
     NEXT: 3,
@@ -262,12 +262,22 @@ class ModLoader {
       if (this.MOD_LIST_LOAD_FINISH != true) {
         fileNameList.map(fileName => {
           if ($.hasString(fileName)) {
-            try {
-              const thisMod = require(this.MOD_DIR + fileName);
-              this.addMod(new thisMod(this.#App));
-            } catch (error) {
+            const filePath = this.MOD_DIR + fileName;
+            if ($file.exists(filePath)) {
+              try {
+                const thisMod = require(filePath);
+                this.addMod(new thisMod(this.#App));
+              } catch (error) {
+                $.error({
+                  message: error.message,
+                  fileName,
+                  name: "ModLoader.addModsByList",
+                  error_line: error.line
+                });
+              }
+            } else {
               $.error({
-                message: error.message,
+                message: "file no exists",
                 fileName,
                 name: "ModLoader.addModsByList"
               });
