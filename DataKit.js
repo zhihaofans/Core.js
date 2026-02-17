@@ -1,4 +1,4 @@
-const VERSION = 1;
+const VERSION = 2;
 class DataView {
   constructor() {}
   init() {
@@ -94,6 +94,9 @@ class KeychainKit {
   }
   getAll() {
     return this.getItemList();
+  }
+  hasKey(key) {
+    return this.getAll().includes(key);
   }
 }
 
