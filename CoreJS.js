@@ -1,4 +1,4 @@
-const VERSION = 19,
+const VERSION = 20,
   LIB_VERSION = {
     DataKit: 1,
     NEXT: 3,
@@ -16,6 +16,12 @@ class AppKernel {
     this.DEBUG = $app.isDebugging;
     this.AppConfig = JSON.parse($file.read("/config.json"));
     this.AppInfo = this.AppConfig.info;
+    if (appId == undefined || appId.indexOf("/" >= 0)) {
+      throw {
+        name: "CoreJS.AppKernel",
+        message: "app id 格式不合法"
+      };
+    }
     this.AppInfo.id = appId;
     this.DATA_DIR = {
       SHARED: "shared://zhihaofans/CoreJS/" + appId + "/",
@@ -190,7 +196,7 @@ class ModLoader {
     this.APP_MODE = appMode == true;
     this.MOD_LIST_LOAD_FINISH = false;
     this.MOD_DIR = modDir;
-    this.MOD_LIST = { id: [], mods: {} };
+    this.MOD_LIST = { id: [], ids: [], mods: {} };
     this.CONFIG = {
       APP_MODE_INDEX_MOD_ID: undefined,
       CONTEXT_MOD_ID: undefined,
@@ -241,7 +247,9 @@ class ModLoader {
       if (!this.hasMod(ID)) {
         //判断是否已加该mod
         modCore.ApiManager = this.ApiManager;
+        // id参数后续将移除
         this.MOD_LIST.id.push(ID);
+        this.MOD_LIST.ids.push(ID);
         this.MOD_LIST.mods[ID] = modCore;
         if (CORE_VERSION >= 12 && ALLOW_API === true) {
           addModLog.errorResult.push("success");
@@ -298,11 +306,14 @@ class ModLoader {
   getModList() {
     return this.MOD_LIST;
   }
+  getModIdList() {
+    return this.MOD_LIST.ids;
+  }
   getMod(modId) {
     return this.MOD_LIST.mods[modId];
   }
   hasMod(modId) {
-    return this.MOD_LIST.id.includes(modId);
+    return this.MOD_LIST.ids.includes(modId);
   }
   runMod(modId) {
     try {
@@ -324,7 +335,7 @@ class ModLoader {
   }
   setWidgetMod(modId) {
     if (
-      this.MOD_LIST.id.includes(modId) &&
+      this.MOD_LIST.ids.includes(modId) &&
       this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_WIDGET &&
       $.isFunction(this.MOD_LIST.mods[modId].runWidget)
     ) {
@@ -369,7 +380,7 @@ class ModLoader {
   }
   setContextMod(modId) {
     if (
-      this.MOD_LIST.id.includes(modId) &&
+      this.MOD_LIST.ids.includes(modId) &&
       this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_CONTEXT &&
       $.isFunction(this.MOD_LIST.mods[modId].runContext)
     ) {
@@ -426,7 +437,7 @@ class ModLoader {
   }
   setKeyboardMod(modId) {
     if (
-      this.MOD_LIST.id.includes(modId) &&
+      this.MOD_LIST.ids.includes(modId) &&
       this.MOD_LIST.mods[modId].MOD_INFO.ALLOW_KEYBOARD &&
       $.isFunction(this.MOD_LIST.mods[modId].runKeyboard)
     ) {
@@ -497,7 +508,7 @@ class ModLoader {
   }
   setAppModeIndexMod(modId) {
     if (
-      this.MOD_LIST.id.includes(modId) &&
+      this.MOD_LIST.ids.includes(modId) &&
       $.isFunction(this.MOD_LIST.mods[modId].run)
     ) {
       this.CONFIG.APP_MODE_INDEX_MOD_ID = modId;
@@ -541,7 +552,7 @@ class ModLoader {
               {
                 type: "list",
                 props: {
-                  data: this.getModList().id.map(modId => {
+                  data: this.getModList().ids.map(modId => {
                     const thisMod = this.getModList().mods[modId];
                     if (thisMod.MOD_INFO.NEED_UPDATE) {
                       return thisMod.MOD_INFO.NAME + "(待更新)";
@@ -573,7 +584,7 @@ class ModLoader {
   }
   showGridModList() {
     const modList = this.getModList();
-    const itemList = modList.id.map(modId => {
+    const itemList = modList.ids.map(modId => {
       const modInfo = modList.mods[modId].MOD_INFO;
       const modData = {
         title: modInfo.NEED_UPDATE ? `${modInfo.NAME}(New)` : modInfo.NAME
