@@ -25,6 +25,9 @@ function isFunction(func) {
 function warn(message) {
   $console.warn(message);
 }
+function throwError(name, message) {
+  throw { name, message };
+}
 class Alert {
   constructor() {}
   show(title, message) {
@@ -605,6 +608,7 @@ module.exports = {
   stopListItemLoading,
   stopLoading,
   textToBase64Image,
+  throwError,
   timestampToTimeStr,
   toast,
   toInt,
