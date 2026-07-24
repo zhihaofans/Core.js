@@ -16,10 +16,15 @@ class AppKernel {
     this.DEBUG = $app.isDebugging;
     this.AppConfig = JSON.parse($file.read("/config.json"));
     this.AppInfo = this.AppConfig.info;
-    if (appId == undefined || appId.indexOf("/" >= 0)) {
+    if (
+      $.isEmpty(appId) ||
+      appId.indexOf("/") >= 0 ||
+      appId.indexOf("\\") >= 0
+    ) {
       throw {
         name: "CoreJS.AppKernel",
-        message: "app id 格式不合法"
+        message: "app id 格式不合法",
+        appId
       };
     }
     this.AppInfo.id = appId;
