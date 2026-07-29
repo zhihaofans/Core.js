@@ -1,4 +1,4 @@
-const VERSION = 20,
+const VERSION = 21,
   LIB_VERSION = {
     DataKit: 1,
     NEXT: 3,
@@ -133,8 +133,10 @@ class ModCore {
     allowKeyboard,
     allowWidget,
     allowWidgetSize,
+    allowConfig,
     apiList,
-    contentMatchRules
+    contentMatchRules,
+    configData
   }) {
     this.App = app;
     this.#App = app;
@@ -163,14 +165,19 @@ class ModCore {
           : undefined,
       API_LIST: apiList,
       CONTENT_MATCH_MODE: contentMatchRules !== undefined,
-      CONTENT_MATCH_RULES: contentMatchRules
+      CONTENT_MATCH_RULES: contentMatchRules,
       //      [{type:"url",mode:"regexp",rule: /ab+c/,id:"example_url"},{type:"image",mode:"regexp",rule: /ab+c/,id:"example_image"}]
+      ALLOW_CONFIG: allowConfig == true
     };
     this.SQLITE = this.initSQLite();
     this.Keychain = new KeychainKit(this.MOD_INFO.KEYCHAIN_DOMAIN);
     //    if (apiList && apiList.length > 0) {
     //      app.ApiManager.addApiList(this.MOD_INFO.ID, apiList);
     //    }
+    if (this.MOD_INFO.ALLOW_CONFIG) {
+      this.ConfigData = configData;
+      this.Config = new ModConfig(this);
+    }
   }
   initSQLite() {
     try {
@@ -313,6 +320,12 @@ class ModLoader {
   }
   getModIdList() {
     return this.MOD_LIST.ids;
+  }
+  getModName(modId) {
+    return this.MOD_LIST.mods[modId].MOD_INFO.NAME;
+  }
+  getModVersion(modId) {
+    return this.MOD_LIST.mods[modId].MOD_INFO.VERSION;
   }
   getMod(modId) {
     return this.MOD_LIST.mods[modId];
@@ -1012,7 +1025,72 @@ class ModSQL {
     return this.SQLITE.getError(sqlResult);
   }
 }
-
+class ModConfig {
+  constructor(mod) {
+    this.Mod = mod;
+    this.Data = mod.ConfigData;
+  }
+  showConfig() {
+    const configExampleItem = {
+      id: "id",
+      title: "title",
+      placeholder: "没有输入时显示的提示",
+      type: "string",
+      default: ""
+    };
+    const configItems = this.Data?.map(i => {
+      const value = $cache.get(i.id) || i.default,
+        result = {
+          title: i.title,
+          type: i.type,
+          key: i.id,
+          items: i.items,
+          value: value,
+          inline: false // 文本框是否行内编辑
+        };
+      if (i.type == "list" && value < 0) {
+        i.value = 0;
+      }
+      return result;
+    });
+    const config = {
+      "title": this.Mod.MOD_INFO.NAME,
+      "items": configItems || [
+        {
+          "title": "title",
+          "type": "string",
+          "key": "zhihaofans.corejs.test",
+          "value": $cache.get("zhihaofans.corejs.test") || "test",
+          "inline": false // 文本框是否行内编辑
+        }
+      ]
+    };
+    return new Promise((resolve, reject) => {
+      $prefs.edit(config).then(result => {
+        this.saveData(result);
+      });
+    });
+  }
+  loadData() {}
+  saveData(data) {
+    $console.info(data);
+    $console.warn(data.items);
+    data.items.map(it => {
+      //$cache.set(it.id, it.value)
+      $cache.setAsync({
+        key: it.key,
+        value: it.value,
+        handler: object => {
+          $console.info({
+            ModConfig: "saveData",
+            modId: this.Mod.MOD_INFO.ID,
+            object
+          });
+        }
+      });
+    });
+  }
+}
 module.exports = {
   CORE_VERSION: VERSION,
   VERSION,
@@ -1026,5 +1104,6 @@ module.exports = {
   ModLoader,
   ModModule,
   ModModuleLoader,
-  WidgetLoader
+  WidgetLoader,
+  ModConfig
 };
