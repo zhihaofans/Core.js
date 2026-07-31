@@ -44,6 +44,7 @@ class AppKernel {
       $.info(`debug:${this.DEBUG}`);
     }
     this.ModLoader = new ModLoader({ modDir, app: this, modList });
+    this.MODLOADER_HASH = this.ModLoader.HASH;
   }
   l10n(l10nPath) {
     if ($.file.isFileExist(l10nPath)) {
@@ -203,6 +204,7 @@ class ModCore {
 class ModLoader {
   #App;
   constructor({ app, appMode, modDir, modList, gridListMode = false }) {
+    this.HASH = $text.uuid;
     this.App = app;
     this.#App = app;
     this.APP_MODE = appMode == true;
@@ -317,6 +319,9 @@ class ModLoader {
   }
   getModList() {
     return this.MOD_LIST;
+  }
+  getModListNew() {
+    return this.MOD_LIST.ids.map(id => this.getMod(id));
   }
   getModIdList() {
     return this.MOD_LIST.ids;
@@ -1030,45 +1035,62 @@ class ModConfig {
     this.Mod = mod;
     this.Data = mod.ConfigData;
   }
+  getId(key) {
+    return `${this.Mod.MOD_INFO.ID}.${key}`;
+  }
+  getConfigItem(key) {
+    return $cache.get(this.getId(key));
+  }
+  setConfigItem(key, value) {
+    return $cache.set(this.getId(key), value);
+  }
   showConfig() {
-    const configExampleItem = {
-      id: "id",
-      title: "title",
-      placeholder: "没有输入时显示的提示",
-      type: "string",
-      default: ""
-    };
-    const configItems = this.Data?.map(i => {
-      const value = $cache.get(i.id) || i.default,
-        result = {
-          title: i.title,
-          type: i.type,
-          key: i.id,
-          items: i.items,
-          value: value,
-          inline: false // 文本框是否行内编辑
-        };
-      if (i.type == "list" && value < 0) {
-        i.value = 0;
-      }
-      return result;
-    });
-    const config = {
-      "title": this.Mod.MOD_INFO.NAME,
-      "items": configItems || [
-        {
-          "title": "title",
-          "type": "string",
-          "key": "zhihaofans.corejs.test",
-          "value": $cache.get("zhihaofans.corejs.test") || "test",
-          "inline": false // 文本框是否行内编辑
-        }
-      ]
-    };
     return new Promise((resolve, reject) => {
-      $prefs.edit(config).then(result => {
-        this.saveData(result);
-      });
+      if (this.Mod.MOD_INFO.CORE_VERSION < 21) {
+        reject("CORE_VERSION need >= v21");
+      } else {
+        const configExampleItem = {
+          id: "id",
+          title: "title",
+          placeholder: "没有输入时显示的提示",
+          type: "string",
+          insetGrouped: false,
+          inline: false, // 文本框是否行内编辑
+          default: ""
+        };
+        const configItems = this.Data?.map(i => {
+          const value = this.getConfigItem(i.id) || i.default,
+            result = {
+              title: i.title,
+              type: i.type,
+              key: this.getId(i.id),
+              items: i.items,
+              value: value,
+              insetGrouped: i.insetGrouped,
+              inline: i.inline == false // 文本框是否行内编辑
+            };
+          if (i.type == "list" && value < 0) {
+            i.value = 0;
+          }
+          return result;
+        });
+        const config = {
+          "title": this.Mod.MOD_INFO.NAME,
+          "items": configItems || [
+            {
+              "title": "title",
+              "type": "string",
+              "key": "zhihaofans.corejs.test",
+              "value": $cache.get("zhihaofans.corejs.test") || "test",
+              "inline": false // 文本框是否行内编辑
+            }
+          ]
+        };
+
+        $prefs.edit(config).then(result => {
+          this.saveData(result);
+        });
+      }
     });
   }
   loadData() {}
